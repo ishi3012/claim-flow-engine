@@ -2,12 +2,12 @@
 # ClaimFlowEngine
 
 <p style="text-align: center;">
-  <img src="images/resized.png" alt="Model Diagram" width="500"/>
+  <img src="ClaimFlowEngine/images/resized.png" alt="Model Diagram" width="500"/>
 </p>
 
 
 
-> An Intelligent Healthcare Claim Routing System using ML, Clustering, and RL-style Policies
+> An Intelligent Healthcare Claim Routing System using ML, Clustering, and Reinforcement Learning Policies
 
 ClaimFlowEngine is an AI-powered orchestration system that predicts healthcare claim denials, clusters their root causes, and intelligently routes high-complexity A/R claims to the right resolution team. It aims to optimize revenue recovery, reduce rework, and align operational workflows using machine learning and reinforcement learning-inspired policies.
 
