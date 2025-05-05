@@ -63,6 +63,33 @@ ClaimFlowEngine/
 
 ---
 
+## 📊 Dataset: Synthetic Healthcare Claims
+
+We use [Synthea](https://github.com/synthetichealth/synthea), an open-source synthetic patient generator, to simulate realistic healthcare encounters, procedures, and payer interactions. The data includes:
+
+| Field            | Description                                      |
+|------------------|--------------------------------------------------|
+| `claim_id`       | Unique ID for the generated claim                |
+| `patient_id`     | Synthetic patient identifier                     |
+| `patient_age`    | Age of the patient at time of service            |
+| `patient_gender` | Biological gender                                |
+| `cpt_code`       | Procedure code used to bill                      |
+| `icd10_code`     | Primary diagnosis code                           |
+| `payer`          | Insurance provider assigned                      |
+| `billed_amount`  | Simulated charge submitted                       |
+| `denial_flag`    | Binary label (1 = denied, 0 = approved)          |
+| `denial_reason`  | Optional categorical reason for denial (if any)  |
+
+We augment `synthea` output with denial labels and reasons for supervised ML training. The final ML-ready dataset is stored at:
+
+```
+data/sample_claims.csv
+```
+
+> 📎 All data is fully synthetic and does not contain any real patient information. This ensures compliance with HIPAA and IRB constraints.
+
+
+
 ## 🚀 Getting Started
 
 1. **Install dependencies**
@@ -89,7 +116,7 @@ python cluster_analysis/cluster_root_causes.py --input data/denied_claims.csv
 uvicorn app.main:app --reload
 ```
 
----
+<!-- ---
 
 ## 📈 Outcomes (Simulated)
 
@@ -98,7 +125,7 @@ uvicorn app.main:app --reload
 - 🧩 Denial clusters labeled with ~90% interpretability
 - 🤖 RL-routing led to 15% uplift in appeal success rate
 
----
+--- -->
 
 ## 🔬 Future Directions
 

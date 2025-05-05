@@ -78,3 +78,4 @@ __pypackages__/
 .cache/
 *.dockerfile
 *.tar
+notes.txt
