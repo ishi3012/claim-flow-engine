@@ -1,0 +1,33 @@
+# Core Python packages
+pandas>=1.5
+numpy>=1.21
+scikit-learn>=1.0
+xgboost>=1.7
+lightgbm>=3.3
+
+# Clustering and embeddings
+umap-learn>=0.5
+hdbscan>=0.8
+sentence-transformers>=2.2
+scipy>=1.7
+
+# FastAPI app + serving
+fastapi>=0.95
+uvicorn[standard]>=0.22
+
+# MLOps and tracking (optional)
+mlflow>=2.0
+joblib>=1.2
+
+# Dev and testing
+pytest>=7.2
+black
+flake8
+
+# Visualization (optional for notebooks)
+matplotlib
+seaborn
+jupyter
+
+# Reinforcement learning (optional policy logic)
+ray[rllib]>=2.0  

@@ -1,0 +1,80 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# C extensions
+*.so
+
+# Virtual environments
+.env/
+.venv/
+env/
+venv/
+
+# Environment files
+*.env
+.envrc
+
+# Data files
+data/raw/
+data/processed/
+*.csv
+*.tsv
+*.json
+*.xlsx
+*.parquet
+
+# Model artifacts
+models/
+*.pkl
+*.joblib
+*.h5
+*.onnx
+*.pt
+*.ckpt
+
+# Logs and outputs
+logs/
+*.log
+*.out
+*.err
+
+# Mac / Linux / Windows system files
+.DS_Store
+Thumbs.db
+
+# FastAPI / Uvicorn reload artifacts
+*.pid
+
+# VSCode / PyCharm configs
+.vscode/
+.idea/
+
+# Coverage and test reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+coverage.xml
+*.cover
+*.py,cover
+
+# Python build files
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Docker and cache
+__pypackages__/
+.cache/
+*.dockerfile
+*.tar
