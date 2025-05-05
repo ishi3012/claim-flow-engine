@@ -1,7 +1,10 @@
 
 # ClaimFlowEngine
 
-![CLAIM FLOW ENGINE](images/Logo3.png)
+<p style="text-align: center;">
+  <img src="images/resized.png" alt="Model Diagram" width="500"/>
+</p>
+
 
 
 > An Intelligent Healthcare Claim Routing System using ML, Clustering, and RL-style Policies
