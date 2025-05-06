@@ -3,79 +3,45 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-
-# PyInstaller
-*.manifest
-*.spec
-
-# C extensions
-*.so
-
 # Virtual environments
 .env/
 .venv/
 env/
 venv/
+ENV/
+env.bak/
+venv.bak/
 
-# Environment files
-*.env
-.envrc
+# Jupyter Notebook Checkpoints
+.ipynb_checkpoints
 
-# Data files
-data/raw/
-data/processed/
-*.csv
-*.tsv
-*.json
-*.xlsx
-*.parquet
-
-# Model artifacts
-models/
-*.pkl
-*.joblib
-*.h5
-*.onnx
-*.pt
-*.ckpt
-
-# Logs and outputs
-logs/
-*.log
-*.out
-*.err
-
-# Mac / Linux / Windows system files
-.DS_Store
-Thumbs.db
-
-# FastAPI / Uvicorn reload artifacts
-*.pid
-
-# VSCode / PyCharm configs
+# VSCode settings
 .vscode/
+
+# PyCharm
 .idea/
 
-# Coverage and test reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-coverage.xml
-*.cover
-*.py,cover
+# macOS
+.DS_Store
 
-# Python build files
-build/
-dist/
-*.egg-info/
-*.egg
+# Logs and outputs
+*.log
 
-# Docker and cache
-__pypackages__/
-.cache/
-*.dockerfile
-*.tar
-notes.txt
+# Output data and intermediate artifacts
+/data/*
+!/data/README.md
+
+# Models and checkpoints
+/models/*
+!/models/README.md
+
+# Compiled files
+*.so
+*.out
+
+# Secrets and configs
+*.env
+*.key
+*.pem
+*.pkl
+

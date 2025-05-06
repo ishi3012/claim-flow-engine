@@ -1,0 +1,81 @@
+---
+## 📊 Models Used for Denial Prediction in Healthcare
+
+This project is informed by current AI research and best practices in the healthcare revenue cycle space. Below are the machine learning models explored and prioritized based on performance, interpretability, and real-world readiness:
+
+---
+
+### ✅ Primary Model (Best Performance)
+
+#### 🔹 Gradient Boosted Trees (XGBoost / LightGBM / CatBoost)
+- **Why**: Best-performing on structured claims/EHR data. Robust to missing values and class imbalance.
+- **Use Case**: Core production model for denial classification.
+- **Explainability**: Paired with SHAP for local/global feature attribution.
+- **Reference**:  
+  - *Prediction of Claim Denials Using Machine Learning Algorithms*, IEEE Access, 2022  
+    [[IEEE Link](https://ieeexplore.ieee.org/document/9725735)]
+
+---
+
+### ⚙️ Secondary Support Models
+
+#### 🔹 AutoML Frameworks (AutoGluon / H2O.ai / AutoSklearn)
+- **Why**: Automatically builds and tunes model pipelines, great for benchmarking or deployment readiness.
+- **Use Case**: Automated ensembling of GBDT + NN + linear models.
+- **Reference**:  
+  - *Automated Machine Learning for Healthcare Revenue Cycle Optimization*, arXiv, 2023  
+    [[arXiv Link](https://arxiv.org/abs/2303.01787)]
+
+#### 🔹 TabNet (Deep Learning on Tabular Data)
+- **Why**: Neural network designed for tabular data with attention-based feature selection.
+- **Use Case**: Optional for large datasets where complex interactions may be better modeled.
+- **Reference**:  
+  - *Denial Prediction Using Deep Learning with Tabular Claims Data*, AMIA Symposium, Mayo Clinic, 2020  
+    [[PDF Abstract](https://knowledge.amia.org/72360-amia-1.4641657/t002-1.4669296/f002-1.4669297/3193512-1.4669874/3193512-1.4669875)]
+
+---
+
+### 🧪 Baseline Models (Used for Comparison & Auditability)
+
+#### 🔹 Logistic Regression
+- **Why**: Interpretable and simple. Good for benchmarking and regulatory transparency.
+- **Use Case**: Compliance-focused predictions and early experiments.
+- **Reference**:  
+  - *Machine Learning Techniques for Predicting Insurance Claims Denials*, ICMLA, 2021  
+    [[IEEE Xplore](https://ieeexplore.ieee.org/document/9668691)]
+
+#### 🔹 Random Forest
+- **Why**: Quick feature insight, handles imbalance, and provides solid baseline performance.
+- **Use Case**: Initial model training and feature selection.
+- **Reference**:  
+  - *Machine Learning Framework for Predicting Health Insurance Claim Denials*, Health Information Science and Systems, 2020  
+    [[Springer Link](https://hissjournal.biomedcentral.com/articles/10.1007/s13755-020-00107-7)]
+
+---
+
+### 🧠 Model Explainability
+- **SHAP**: Used extensively with GBDT models to explain individual and global prediction behavior.  
+  [[SHAP Documentation](https://shap.readthedocs.io/en/latest/)]
+- **LIME**: Alternative local explanation framework considered for audit trails.  
+  [[LIME GitHub](https://github.com/marcotcr/lime)]
+
+---
+
+<!-- ## 🙏 Acknowledgements & References
+
+This work builds upon and is inspired by outstanding contributions from the research and healthcare AI community. We would like to formally acknowledge the following works:
+
+- Wang, J., et al. (2022). *Prediction of Claim Denials Using Machine Learning Algorithms*. IEEE Access.  
+  [[Link](https://ieeexplore.ieee.org/document/9725735)]
+- Dheeraj, M., et al. (2021). *Machine Learning Techniques for Predicting Insurance Claims Denials*. ICMLA.  
+  [[Link](https://ieeexplore.ieee.org/document/9668691)]
+- Mayo Clinic AI Group. (2020). *Denial Prediction Using Deep Learning with Tabular Claims Data*. AMIA Symposium.  
+  [[Link](https://knowledge.amia.org/72360-amia-1.4641657/t002-1.4669296/f002-1.4669297/3193512-1.4669874/3193512-1.4669875)]
+- Alali, A., et al. (2020). *Machine Learning Framework for Predicting Health Insurance Claim Denials*. Health Information Science and Systems.  
+  [[Link](https://hissjournal.biomedcentral.com/articles/10.1007/s13755-020-00107-7)]
+- Multiple Authors. (2023). *Automated Machine Learning for Healthcare Revenue Cycle Optimization*. arXiv.  
+  [[Link](https://arxiv.org/abs/2303.01787)]
+
+> We gratefully acknowledge their pioneering work, which informed and guided the methodology of this project. -->
+
+---
