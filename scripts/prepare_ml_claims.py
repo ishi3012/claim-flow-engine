@@ -62,6 +62,7 @@ processed_data_path = args.output_dir
 patients = pd.read_csv(os.path.join(raw_data_path, 'patients.csv'))
 procedures = pd.read_csv(os.path.join(raw_data_path,'procedures.csv'))
 payers = pd.read_csv(os.path.join(raw_data_path,'payer_transitions.csv'))
+payer_names = pd.read_csv(os.path.join(raw_data_path, 'payers.csv'))
 
 procedures["procedure_date"] = pd.to_datetime(procedures["START"]).dt.tz_localize(None)
 
@@ -84,6 +85,11 @@ claims = claims[
     (claims['procedure_date'] <= claims['END_DATE'])
 ]
 
+# Merge Payer names
+claims = claims.merge(payer_names[['Id', 'NAME']], left_on='PAYER', right_on='Id', how='left')
+claims = claims.rename(columns={"NAME": "payer_name"})
+claims.drop(columns=["Id"], inplace=True, errors="ignore")  # clean up
+
 # Simulate extra fields
 print("~~~ Simulating extra fields.")
 claims["claim_id"] = ["CLM{:06d}".format(i) for i in range(len(claims))]
@@ -92,7 +98,7 @@ claims["cpt_code"] = claims["CODE"].astype(str)
 claims["icd10_code"] = claims["REASONDESCRIPTION"].fillna("R51")  # default dx
 claims["days_since_procedure"] = claims["procedure_date"].apply(lambda d: (datetime.today() - d).days)
 claims["patient_id"] = claims["PATIENT"]
-claims["payer"] = claims["PAYER"]
+claims["payer"] = claims["payer_name"]
 
 # Minimal selected features
 columns = [

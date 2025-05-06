@@ -1,0 +1,3 @@
+data:
+  default_path: ../data/processed/claims.csv
+  balanced_path: ../data/processed/balanced_claims.csv
