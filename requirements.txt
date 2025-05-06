@@ -28,6 +28,7 @@ flake8
 matplotlib
 seaborn
 jupyter
+plotly
 
 # Reinforcement learning (optional policy logic)
 ray[rllib]>=2.0  

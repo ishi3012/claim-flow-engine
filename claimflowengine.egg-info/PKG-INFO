@@ -35,27 +35,25 @@ Dynamic: requires-dist
 Dynamic: requires-python
 Dynamic: summary
 
-
 # ClaimFlowEngine
 
-<p style="text-align: center;">
-  <img src="ClaimFlowEngine/images/resized.png" alt="Model Diagram" width="500"/>
+> An Agentic AI System for Smart Healthcare Claim Denial Prediction and Routing
+
+<p align="center">
+  <img src="ClaimFlowEngine/images/resized.png" alt="System Diagram" width="500"/>
 </p>
 
-
-
-> An Intelligent Healthcare Claim Routing System using ML, Clustering, and Reinforcement Learning Policies
-
-ClaimFlowEngine is an AI-powered orchestration system that predicts healthcare claim denials, clusters their root causes, and intelligently routes high-complexity A/R claims to the right resolution team. It aims to optimize revenue recovery, reduce rework, and align operational workflows using machine learning and reinforcement learning-inspired policies.
+ClaimFlowEngine is a modular, agentic AI system designed to predict claim denials, analyze root causes, and intelligently route high-complexity A/R claims to resolution teams. It integrates machine learning, unsupervised clustering, and reinforcement learning-inspired logic to automate and optimize revenue cycle workflows in healthcare.
 
 ---
 
-## 📌 Project Highlights
+## 🚀 MVP Features
 
-- 🔍 **Denial Prediction** using XGBoost on structured EHR and claims data (CPT, ICD-10, payer, etc.)
-- 🧠 **Root Cause Clustering** with Sentence-BERT embeddings and HDBSCAN to uncover latent denial drivers
-- 🚦 **Routing Engine** with RL-style policy logic to prioritize and assign claims to skilled teams
-- ⚙️ **End-to-End Pipeline** with modular components and orchestration (Vertex AI / Airflow ready)
+- 🔍 **Denial Prediction** with XGBoost on structured claims and EHR metadata
+- 🧠 **Root Cause Clustering** using Sentence-BERT embeddings + HDBSCAN
+- 🧭 **Routing Engine** with RL-style policy logic to assign claims to optimal queues
+- ⚙️ **Vertex AI-Ready Pipelines** for scalable training, inference, and routing
+- 🧩 **Agent-Oriented Architecture** enabling composable reasoning units
 
 ---
 
@@ -63,13 +61,12 @@ ClaimFlowEngine is an AI-powered orchestration system that predicts healthcare c
 
 ```mermaid
 flowchart TD
-    A[Raw Claims Data] --> B[Feature Engineering]
-    B --> C[Denial Predictor]
-    C --> D[Clustering Engine]
-    D --> E[Routing Policy Engine]
-    E --> F[Queue Assignment & A/R Routing]
+    A[Raw / Synthetic Claims Data] --> B[ML Feature Engineering]
+    B --> C[Denial Prediction (XGBoost)]
+    C --> D[Root Cause Clustering (S-BERT + HDBSCAN)]
+    D --> E[RL Routing Policy Engine]
+    E --> F[FastAPI Endpoint / Agent Execution]
 ```
-
 ---
 
 ## 🛠 Tech Stack
@@ -79,8 +76,9 @@ flowchart TD
 | ML Models          | XGBoost, Scikit-learn, PyTorch, Sentence-BERT                        |
 | RL Logic           | Contextual Bandits, Q-Learning (offline), Reward Function Modeling   |
 | Orchestration      | Vertex AI Pipelines, Airflow, FastAPI                                |
-| Deployment & Infra | Docker, GitHub Actions, MLflow, GCP / AWS                            |
-| Data Sources       | Simulated EHR + Claims Data (837/835), Team Skill Matrix             |
+| Deployment & Infra | Vertex AI, Docker, GCP, MLflow, GitHub Actions                       |
+|Serving             | FastAPI, REST APIs, GCP Endpoints
+| Data Sources       | Simulated EHR + Claims Data (EDI 837), Team Skill Matrix             |
 
 ---
 
@@ -88,14 +86,26 @@ flowchart TD
 
 ```
 ClaimFlowEngine/
-├── data/                   # Synthetic & real claims datasets
-├── models/                 # Trained models & checkpoints
-├── routing_policy/         # RL-style decision logic
-├── cluster_analysis/       # Unsupervised root cause logic
-├── app/                    # FastAPI microservice for integration
-├── notebooks/              # Prototyping and EDA
-├── tests/                  # Unit & integration tests
-└── README.md               # Project documentation
+├── claimflowengine/            # Core logic: agents, skills, workflows, utils
+│   ├── agents/
+│   ├── skills/
+│   ├── workflows/
+│   └── utils/
+├── data/                       # Preprocessed claims dataset (e.g., processed_claims.csv)
+├── models/                     # Trained models and vectorizers
+├── deployment/
+│   ├── pipelines/              # Vertex AI pipeline components & orchestrators
+│   ├── serving/                # FastAPI app or custom prediction container
+│   ├── docker/                 # Dockerfiles and startup configs
+│   ├── config/                 # Pipeline & model YAML configs
+│   └── gcloud_scripts/         # CLI scripts for pipeline submission, deploy, etc.
+├── notebooks/                  # EDA, experiments, embedding analysis
+├── tests/                      # Unit & integration tests
+├── requirements.txt
+├── setup.py
+├── README.md
+└── LICENSE
+
 ```
 
 ---
@@ -138,19 +148,20 @@ pip install -r requirements.txt
 2. **Train Denial Predictor**
 
 ```bash
-python models/train_denial_predictor.py --config configs/xgboost.yaml
+python claimflowengine/skills/train_denial_predictor.py --config deployment/config/xgboost.yaml
 ```
 
 3. **Cluster Root Causes**
 
 ```bash
-python cluster_analysis/cluster_root_causes.py --input data/denied_claims.csv
+python claimflowengine/skills/cluster_root_causes.py --input data/denied_claims.csv
+
 ```
 
 4. **Run Routing Engine**
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn deployment/serving/main:app --reload
 ```
 
 <!-- ---
@@ -166,9 +177,16 @@ uvicorn app.main:app --reload
 
 ## 🔬 Future Directions
 
+### Domain features:
 - Live data integration with EHR APIs for real-time claim processing.
 - Human-in-the-loop (HITL) feedback mechanism for continuous policy tuning and improvement.
 - Interactive dashboard for enhanced explainability of predictions, cluster insights, and audit trails of routing decisions.
+- Agentic AI logic for denial appeals and policy optimization.
+
+### Tech Enhancements:
+
+- LangChain/CrewAI orchestration for multi-agent workflows
+- Vertex AI Workbench for low-code experimentation
 ---
 
 ## 👩‍💻 Author
