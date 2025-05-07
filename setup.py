@@ -23,7 +23,8 @@ setup(
         "fastapi>=0.95",
         "uvicorn[standard]>=0.22",
         "mlflow>=2.0",
-        "joblib>=1.2"
+        "joblib>=1.2",
+         "pyyaml>=6.0"
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

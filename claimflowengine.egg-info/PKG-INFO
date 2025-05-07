@@ -1,39 +1,24 @@
 Metadata-Version: 2.4
 Name: claimflowengine
 Version: 0.1.0
-Summary: An intelligent healthcare claim routing system using ML and RL-style policies.
+Summary: ML pipeline for healthcare claim denial prediction and workflow routing
 Home-page: https://github.com/ishi3012/ClaimFlowEngine
 Author: Shilpa Musale
-Author-email: shilpa.musale02@gmail.com
-Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: OS Independent
+Author-email: Claim Flow Engine Project <your_email@example.com>
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
 License-File: LICENSE
-Requires-Dist: pandas>=1.5
-Requires-Dist: numpy>=1.21
-Requires-Dist: scikit-learn>=1.0
-Requires-Dist: xgboost>=1.7
-Requires-Dist: lightgbm>=3.3
-Requires-Dist: umap-learn>=0.5
-Requires-Dist: hdbscan>=0.8
-Requires-Dist: sentence-transformers>=2.2
-Requires-Dist: scipy>=1.7
-Requires-Dist: fastapi>=0.95
-Requires-Dist: uvicorn[standard]>=0.22
-Requires-Dist: mlflow>=2.0
-Requires-Dist: joblib>=1.2
+Requires-Dist: pandas>=1.5.0
+Requires-Dist: numpy>=1.21.0
+Requires-Dist: scikit-learn>=1.1.0
+Requires-Dist: xgboost>=1.6.0
+Requires-Dist: lightgbm>=3.3.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: joblib>=1.2.0
 Dynamic: author
-Dynamic: author-email
-Dynamic: classifier
-Dynamic: description
-Dynamic: description-content-type
 Dynamic: home-page
 Dynamic: license-file
-Dynamic: requires-dist
 Dynamic: requires-python
-Dynamic: summary
 
 # ClaimFlowEngine
 

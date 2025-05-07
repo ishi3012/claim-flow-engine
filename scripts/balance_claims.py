@@ -3,18 +3,22 @@ import pandas as pd
 from sklearn.utils import resample
 import yaml
 from pathlib import Path
+from typing import Dict, Any
 
 
-def load_config(path='config/config.yaml'):
+def load_config(path: Path) -> Dict[str, Any]:
     with open(path, 'r') as file:
         return yaml.safe_load(file)
 
-def balance_by_upsampling(df, target='denial_flag', factor=2.0):
-    '''
-        Randomly upsample the minority class by a factor (e.g., 2.0 = double it).
-    '''
+
+def balance_by_upsampling(df: pd.DataFrame, target: str = 'denial_flag', factor: float = 2.0) -> pd.DataFrame:
+    """
+    Randomly upsample the minority class by a specified factor.
+    """
     majority_class = df[df[target] == 1]
     minority_class = df[df[target] == 0]
+
+    print(f"Upsampling {len(minority_class)} → {int(len(minority_class) * factor)} rows (factor={factor})")
 
     upsampled = resample(
         minority_class,
@@ -29,37 +33,31 @@ def balance_by_upsampling(df, target='denial_flag', factor=2.0):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', required=False, help='Path to input CSV')
-    parser.add_argument('--output', required=True, help='Path to save balanced CSV')
-    parser.add_argument('--factor', type=float, default=None, help='Upsample the minority class by a factor')
+    parser.add_argument('--factor', type=float, default=2.0, help='Upsample factor for minority class')
     parser.add_argument('--config', default='config/config.yaml', help='Path to config YAML')
     args = parser.parse_args()
 
-    # Load config and determine input path
-    config = load_config(args.config)
-    balanced_path = Path(config['data']['balanced_path'])
-    default_path = Path(config['data']['default_path'])
+    # Get project root
+    ROOT = Path(__file__).resolve().parent.parent
 
-    # Use balanced if it exists, else fallback to default
-    if balanced_path.exists():
-        data_path = balanced_path
-    else:
-        data_path = default_path
-    
-    input_path = args.input if args.input else data_path
+    # Load config and resolve paths
+    config = load_config(ROOT / args.config)
+    default_path = (ROOT / config['data']['default_path']).resolve()
+    balanced_path = (ROOT / config['data']['balanced_path']).resolve()
 
-    # Load data
-    df = pd.read_csv(input_path)
+    if not default_path.exists():
+        raise FileNotFoundError(f"Input file not found: {default_path}")
 
-    # Use default factor if not provided
-    factor = args.factor if args.factor is not None else 2.0
+    print(f"Loading input data from: {default_path}")
+    df = pd.read_csv(default_path)
 
-    # Balance data
-    df_balanced = balance_by_upsampling(df, factor=factor)
+    # Perform balancing
+    df_balanced = balance_by_upsampling(df, factor=args.factor)
 
-    # Save result
-    df_balanced.to_csv(args.output, index=False)
+    # Save to balanced path
+    balanced_path.parent.mkdir(parents=True, exist_ok=True)
+    df_balanced.to_csv(balanced_path, index=False)
 
-    # Display result
-    print("Balanced class distribution:")
+    print(f"Balanced dataset saved to: {balanced_path}")
+    print("Class distribution after balancing:")
     print(df_balanced['denial_flag'].value_counts(normalize=True).rename("proportion"))
