@@ -1,5 +1,5 @@
 import pandas as pd
-from ClaimFlowEngine.denial_rules.rules import apply_denial_rules
+from claimflowengine.skills.denial_rules import apply_denial_rules
 
 
 def test_apply_denial_rules_sample():

@@ -198,9 +198,9 @@ def main():
     for name, model in models.items():
         try:
             # scores = cross_val_score(model, X, y, cv=3, scoring="roc_auc")
-            print(f"✔ {name} OK")
+            print(f"{name} OK")
         except Exception as e:
-            print(f"❌ {name} failed:", e)
+            print(f"{name} failed:", e)
 
     # results = evaluate_models(models, X, y)
     # save_best_model(models, results, X, y, MODEL_DIR)
