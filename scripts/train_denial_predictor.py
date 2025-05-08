@@ -164,7 +164,16 @@ def main():
 
     print(X.shape)
     print(y.shape)
-    # models = get_models(RANDOM_STATE)
+    models = get_models(RANDOM_STATE)
+
+    for name, model in models.items():
+        try:
+            scores = cross_val_score(model, X, y, cv=3, scoring="roc_auc")
+            print(f"✔ {name} OK")
+        except Exception as e:
+            print(f"❌ {name} failed:", e)
+
+            
     # results = evaluate_models(models, X, y)
     # save_best_model(models, results, X, y, MODEL_DIR)
 
