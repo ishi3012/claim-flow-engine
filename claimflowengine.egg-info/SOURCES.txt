@@ -13,6 +13,8 @@ claimflowengine/agents/claim_optimizer.py
 claimflowengine/agents/denial_analyzeer.py
 claimflowengine/agents/router.py
 claimflowengine/app/__init__.py
+claimflowengine/preprocessing/__init__.py
+claimflowengine/preprocessing/features.py
 claimflowengine/skills/__init__.py
 claimflowengine/skills/cluster_root_causes.py
 claimflowengine/skills/denial_rules.py
@@ -24,4 +26,5 @@ claimflowengine/workflows/denial_resolution_chain.py
 claimflowengine/workflows/readmission_pipeline.py
 deployment/__init__.py
 models/__init__.py
+tests/test_features.py
 tests/test_rules.py

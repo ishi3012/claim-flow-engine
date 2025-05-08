@@ -7,24 +7,28 @@ from typing import Dict, Any
 
 
 def load_config(path: Path) -> Dict[str, Any]:
-    with open(path, 'r') as file:
+    with open(path, "r") as file:
         return yaml.safe_load(file)
 
 
-def balance_by_upsampling(df: pd.DataFrame, target: str = 'denial_flag', factor: float = 2.0) -> pd.DataFrame:
+def balance_by_upsampling(
+    df: pd.DataFrame, target: str = "denial_flag", factor: float = 2.0
+) -> pd.DataFrame:
     """
     Randomly upsample the minority class by a specified factor.
     """
     majority_class = df[df[target] == 1]
     minority_class = df[df[target] == 0]
 
-    print(f"Upsampling {len(minority_class)} → {int(len(minority_class) * factor)} rows (factor={factor})")
+    print(
+        f"Upsampling {len(minority_class)} → {int(len(minority_class) * factor)} rows (factor={factor})"
+    )
 
     upsampled = resample(
         minority_class,
         replace=True,
         n_samples=int(len(minority_class) * factor),
-        random_state=42
+        random_state=42,
     )
 
     df_balanced = pd.concat([majority_class, upsampled])
@@ -33,8 +37,12 @@ def balance_by_upsampling(df: pd.DataFrame, target: str = 'denial_flag', factor:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--factor', type=float, default=2.0, help='Upsample factor for minority class')
-    parser.add_argument('--config', default='config/config.yaml', help='Path to config YAML')
+    parser.add_argument(
+        "--factor", type=float, default=2.0, help="Upsample factor for minority class"
+    )
+    parser.add_argument(
+        "--config", default="config/config.yaml", help="Path to config YAML"
+    )
     args = parser.parse_args()
 
     # Get project root
@@ -42,8 +50,8 @@ if __name__ == "__main__":
 
     # Load config and resolve paths
     config = load_config(ROOT / args.config)
-    default_path = (ROOT / config['data']['default_path']).resolve()
-    balanced_path = (ROOT / config['data']['balanced_path']).resolve()
+    default_path = (ROOT / config["data"]["default_path"]).resolve()
+    balanced_path = (ROOT / config["data"]["balanced_path"]).resolve()
 
     if not default_path.exists():
         raise FileNotFoundError(f"Input file not found: {default_path}")
@@ -60,4 +68,4 @@ if __name__ == "__main__":
 
     print(f"Balanced dataset saved to: {balanced_path}")
     print("Class distribution after balancing:")
-    print(df_balanced['denial_flag'].value_counts(normalize=True).rename("proportion"))
+    print(df_balanced["denial_flag"].value_counts(normalize=True).rename("proportion"))

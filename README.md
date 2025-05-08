@@ -49,27 +49,33 @@ flowchart TD
 
 ```
 ClaimFlowEngine/
-├── claimflowengine/            # Core logic: agents, skills, workflows, utils
-│   ├── agents/
-│   ├── skills/
-│   ├── workflows/
-│   └── utils/
-├── data/                       # Preprocessed claims dataset (e.g., processed_claims.csv)
-├── models/                     # Trained models and vectorizers
+├── claimflowengine/ # Core logic: agents, pipelines, preprocessing, utils, workflows
+│ ├── agents/ # Agent logic for decision routing and appeals
+│ ├── pipelines/ # Model training, evaluation, and composite scoring logic
+│ ├── preprocessing/ # Feature engineering, imputers, encoders, datetime transforms
+│ ├── skills/ # Legacy logic (can migrate to pipelines or agents)
+│ ├── utils/ # Shared utilities like config loading and path management
+│ └── workflows/ # Agent task chains or pipeline orchestrations
+├── data/ # Raw and processed claims dataset
+├── models/ # Trained model binaries and benchmark results
 ├── deployment/
-│   ├── pipelines/              # Vertex AI pipeline components & orchestrators
-│   ├── serving/                # FastAPI app or custom prediction container
-│   ├── docker/                 # Dockerfiles and startup configs
-│   ├── config/                 # Pipeline & model YAML configs
-│   └── gcloud_scripts/         # CLI scripts for pipeline submission, deploy, etc.
-├── notebooks/                  # EDA, experiments, embedding analysis
-├── tests/                      # Unit & integration tests
+│ ├── pipelines/ # Vertex AI pipeline components & orchestrators
+│ ├── serving/ # FastAPI app or custom prediction containers
+│ ├── docker/ # Dockerfiles and startup configs
+│ ├── config/ # Pipeline & model YAML configs
+│ └── gcloud_scripts/ # CLI scripts for pipeline submission, deploy, etc.
+├── notebooks/ # EDA, experiments, embedding analysis
+├── tests/ # Unit & integration tests
 ├── requirements.txt
 ├── setup.py
 ├── README.md
 └── LICENSE
-
 ```
+
+---
+### Preprocessing Module
+
+All preprocessing logic (imputation, date transformation, feature typing, sklearn pipelines) is modularized in `claimflowengine/preprocessing`. These functions are tested in `tests/test_features.py`.
 
 ---
 
@@ -161,4 +167,3 @@ uvicorn deployment/serving/main:app --reload
 ## 📄 License
 
 This project is licensed under the [MIT License](LICENSE).
-

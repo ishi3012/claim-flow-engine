@@ -24,12 +24,12 @@ setup(
         "uvicorn[standard]>=0.22",
         "mlflow>=2.0",
         "joblib>=1.2",
-         "pyyaml>=6.0"
+        "pyyaml>=6.0",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.8',
+    python_requires=">=3.8",
 )

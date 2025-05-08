@@ -32,4 +32,7 @@ jupyter
 plotly
 
 # Reinforcement learning (optional policy logic)
-ray[rllib]>=2.0  
+ray[rllib]>=2.0
+
+# Pre-commit
+pre-commit

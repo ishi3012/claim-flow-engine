@@ -48,84 +48,90 @@ import numpy as np
 from tqdm import tqdm
 from datetime import datetime
 from claimflowengine.skills.denial_rules import apply_denial_rules
+
 tqdm.pandas()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input_dir', type=str, required=True)
-parser.add_argument('--output_dir', type=str, required=True)
+parser.add_argument("--input_dir", type=str, required=True)
+parser.add_argument("--output_dir", type=str, required=True)
 args = parser.parse_args()
 
 raw_data_path = args.input_dir
 processed_data_path = args.output_dir
 
 # Load raw data files
-patients = pd.read_csv(os.path.join(raw_data_path, 'patients.csv'))
-procedures = pd.read_csv(os.path.join(raw_data_path,'procedures.csv'))
-payers = pd.read_csv(os.path.join(raw_data_path,'payer_transitions.csv'))
-payer_names = pd.read_csv(os.path.join(raw_data_path, 'payers.csv'))
+patients = pd.read_csv(os.path.join(raw_data_path, "patients.csv"))
+procedures = pd.read_csv(os.path.join(raw_data_path, "procedures.csv"))
+payers = pd.read_csv(os.path.join(raw_data_path, "payer_transitions.csv"))
+payer_names = pd.read_csv(os.path.join(raw_data_path, "payers.csv"))
 
 procedures["procedure_date"] = pd.to_datetime(procedures["START"]).dt.tz_localize(None)
 
 
 # Create claims dataset
 print("~~~ Creating claims dataset.")
-claims = procedures.merge(patients, left_on='PATIENT', right_on='Id', how='left')
-claims = claims.rename(columns={'BIRTHDATE':'birth_date', 'GENDER':'patient_gender'})
-claims['birth_date'] = pd.to_datetime(claims['birth_date']).dt.tz_localize(None)
-claims['patient_age'] = ((claims['procedure_date'] - claims['birth_date']).dt.days / 365.25).astype(int)
+claims = procedures.merge(patients, left_on="PATIENT", right_on="Id", how="left")
+claims = claims.rename(columns={"BIRTHDATE": "birth_date", "GENDER": "patient_gender"})
+claims["birth_date"] = pd.to_datetime(claims["birth_date"]).dt.tz_localize(None)
+claims["patient_age"] = (
+    (claims["procedure_date"] - claims["birth_date"]).dt.days / 365.25
+).astype(int)
 
 # Merge payer information to claims dataset
 print("~~~ Merging payer information to claims dataset.")
 payers["START_DATE"] = pd.to_datetime(payers["START_DATE"]).dt.tz_localize(None)
 payers["END_DATE"] = pd.to_datetime(payers["END_DATE"]).dt.tz_localize(None)
 
-claims = claims.merge(payers, left_on = 'PATIENT', right_on='PATIENT', how='left', suffixes=('','_payer'))
+claims = claims.merge(
+    payers, left_on="PATIENT", right_on="PATIENT", how="left", suffixes=("", "_payer")
+)
 claims = claims[
-    (claims['procedure_date'] >= claims['START_DATE']) & 
-    (claims['procedure_date'] <= claims['END_DATE'])
+    (claims["procedure_date"] >= claims["START_DATE"])
+    & (claims["procedure_date"] <= claims["END_DATE"])
 ]
 
 # Merge Payer names
-claims = claims.merge(payer_names[['Id', 'NAME']], left_on='PAYER', right_on='Id', how='left')
+claims = claims.merge(
+    payer_names[["Id", "NAME"]], left_on="PAYER", right_on="Id", how="left"
+)
 claims = claims.rename(columns={"NAME": "payer_name"})
 claims.drop(columns=["Id"], inplace=True, errors="ignore")  # clean up
 
 # Simulate extra fields
 print("~~~ Simulating extra fields.")
 claims["claim_id"] = ["CLM{:06d}".format(i) for i in range(len(claims))]
-claims["billed_amount"] = claims["CODE"].apply(lambda _: round(np.random.uniform(50, 3000), 2))  # random cost
+claims["billed_amount"] = claims["CODE"].apply(
+    lambda _: round(np.random.uniform(50, 3000), 2)
+)  # random cost
 claims["cpt_code"] = claims["CODE"].astype(str)
 claims["icd10_code"] = claims["REASONDESCRIPTION"].fillna("R51")  # default dx
-claims["days_since_procedure"] = claims["procedure_date"].apply(lambda d: (datetime.today() - d).days)
+claims["days_since_procedure"] = claims["procedure_date"].apply(
+    lambda d: (datetime.today() - d).days
+)
 claims["patient_id"] = claims["PATIENT"]
 claims["payer"] = claims["payer_name"]
 
 # Minimal selected features
 columns = [
-    "claim_id", "patient_id", "patient_age", "patient_gender",
-    "procedure_date", "cpt_code", "icd10_code", "payer",
-    "billed_amount", "days_since_procedure"
+    "claim_id",
+    "patient_id",
+    "patient_age",
+    "patient_gender",
+    "procedure_date",
+    "cpt_code",
+    "icd10_code",
+    "payer",
+    "billed_amount",
+    "days_since_procedure",
 ]
 claims = claims[columns]
 
 # Apply denial logic
 print("~~~ Applying denial logic.")
-claims = claims.apply(apply_denial_rules, axis=1)  
+claims = claims.apply(apply_denial_rules, axis=1)
 
 # Save the claims file
 print("~~~ Saving processed claims file.")
-claims.to_csv(os.path.join(processed_data_path, 'claims.csv'), index=False)
-file_path = os.path.join(processed_data_path, 'claims.csv')
+claims.to_csv(os.path.join(processed_data_path, "claims.csv"), index=False)
+file_path = os.path.join(processed_data_path, "claims.csv")
 print(f"Processed claims data saved to {file_path}")
-
-
-
-
-
-
-
-
-
-
-
-
