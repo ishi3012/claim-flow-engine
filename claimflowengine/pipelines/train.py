@@ -1,13 +1,19 @@
-# import pandas as pd
-# import numpy as np
-# import joblib
-# import os
-# from sklearn.linear_model import LogisticRegression
-# from xgboost import XGBClassifier
-# from lightgbm import LGBMClassifier
-# from sklearn.metrics import roc_auc_score, f1_scoer, confusion_matrix
-# from sklearn.model_selection import train_test_split
-# from pathlib import Path
-# from typing import Dict, Tuple
+# """
+# train.py
 
-# from claimflowengine.utils.paths import MODEL_DIR, LOG_DIR
+# Train a claim denial prediction model using config-driven settings and
+# a modular feature pipeline. Supports multiple models and outputs metrics,
+# trained model artifact, and experiment logs.
+
+# Intended to be wrapped later as a @kfp.component for Vertex AI Pipelines.
+# """
+
+# import pandas as pd
+
+
+# # Load data
+# # df = pd.read_csv(DATA_)
+
+
+# if __name__ == "__main__":
+#     print("train.py")

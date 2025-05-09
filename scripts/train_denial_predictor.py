@@ -40,21 +40,18 @@ from sklearn.metrics import make_scorer, f1_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
 import lightgbm as lgb
+from claimflowengine.utils.paths import CONFIG_PATH, DATA_DIR
 
 # ------------------
 #   Get config file and paths
 # ------------------
-
-ROOT = Path(__file__).resolve().parent.parent
-CONFIG_PATH: Path = ROOT / "config" / "config.yaml"
-MODEL_DIR: Path = ROOT / "models"
-
-# get data file path
+# Load config
 with open(CONFIG_PATH, "r") as f:
     config: Dict[str, Any] = yaml.safe_load(f)
 
-default_path = (ROOT / config["data"]["default_path"]).resolve()
-balanced_path = (ROOT / config["data"]["balanced_path"]).resolve()
+# Resolve data path
+default_path = (DATA_DIR / config["data"]["default_path"]).resolve()
+balanced_path = (DATA_DIR / config["data"]["balanced_path"]).resolve()
 
 
 DATA_PATH = Path(balanced_path) if balanced_path.exists() else Path(default_path)
