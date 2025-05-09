@@ -1,10 +1,11 @@
 """
 train_denial_predictor.py
 
-train_denial_predictor.py
+Benchmark and select the best model for healthcare claim denial prediction using composite metrics.
+Evaluates multiple models using cross-validation and a weighted score (AUC, F1, Recall) defined in config.
+Trains and saves the best model based on the composite score.
 
-Benchmark and select the best model for healthcare claim denial prediction using composite score
-based on config-defined metric weights.
+Intended for early-stage model selection, AutoML-style benchmarking, and rapid prototyping.
 
 Models evaluated:
 - Logistic Regression
@@ -16,7 +17,7 @@ Metrics used:
 - AUC
 - F1-score
 - Recall
-- Composite (weighted sum from config)
+- Composite score
 
 Author: Claim Flow Engine Project
 """
@@ -40,7 +41,7 @@ from sklearn.metrics import make_scorer, f1_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
 import xgboost as xgb
 import lightgbm as lgb
-from claimflowengine.utils.paths import CONFIG_PATH, DATA_DIR
+from claimflowengine.utils.paths import CONFIG_PATH, DATA_DIR, MODEL_DIR
 
 # ------------------
 #   Get config file and paths
@@ -58,7 +59,7 @@ DATA_PATH = Path(balanced_path) if balanced_path.exists() else Path(default_path
 
 TARGET_COL: str = config["data"].get("target_col", "denial_flag")
 ID_COLS: List[str] = config["data"].get("id_cols", [])
-RANDOM_STATE: int = config.get("random_state", 42)
+RANDOM_STATE: int = config["train"].get("random_state", 42)
 N_SPLITS: int = config.get("cv_folds", 5)
 WEIGHTS: Dict[str, float] = config.get("model_selection", {}).get(
     "weights", {"auc": 0.33, "f1": 0.33, "recall": 0.34}
@@ -162,6 +163,7 @@ def save_best_model(
     X: pd.DataFrame,
     y: pd.Series,
     save_dir: Path,
+    results_path: Path = None,
 ) -> None:
     """
     Train and save the best model based on composite score.
@@ -178,7 +180,8 @@ def save_best_model(
     model_path = save_dir / f"{best_model_name}_best_model.pkl"
     joblib.dump(best_model, model_path)
 
-    results_df.to_csv(save_dir / "model_benchmark_results.csv", index=False)
+    results_csv_path = results_path or (save_dir / "model_benchmark_results.csv")
+    results_df.to_csv(results_csv_path, index=False)
 
     print(f"\n Best model '{best_model_name}' saved to: {model_path}")
     print(" Performance metrics saved to model_benchmark_results.csv")
@@ -199,8 +202,8 @@ def main():
         except Exception as e:
             print(f"{name} failed:", e)
 
-    # results = evaluate_models(models, X, y)
-    # save_best_model(models, results, X, y, MODEL_DIR)
+    results = evaluate_models(models, X, y)
+    save_best_model(models, results, X, y, MODEL_DIR)
 
 
 if __name__ == "__main__":

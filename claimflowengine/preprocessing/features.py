@@ -13,7 +13,6 @@ from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from pandas.api.types import is_datetime64_any_dtype
 
 
 def replace_none_with_nan(df: pd.DataFrame) -> pd.DataFrame:
@@ -31,31 +30,24 @@ def replace_none_with_nan(df: pd.DataFrame) -> pd.DataFrame:
 
 def preprocess_dates(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Convert datetime columns into 'days since' features and drop original columns.
-
-    This function scans all columns in the DataFrame. If a column can be parsed as a datetime,
-    it calculates how many days have passed since that date relative to the current date
-    and creates a new feature column named `days_since_<original_column>`. The original datetime
-    columns are then dropped.
-
-    Args:
-        df (pd.DataFrame): Input DataFrame with raw date columns.
-
-    Returns:
-        pd.DataFrame: DataFrame with new 'days since' features and original datetime columns removed.
+    Convert known datetime columns into 'days since' features.
+    Only applies to columns that are likely dates.
     """
     today = pd.Timestamp.today()
 
-    for col in df.columns:
-        if not is_datetime64_any_dtype(df[col]):
+    # List of columns you *know* are dates
+    candidate_date_cols = [
+        col for col in df.columns if "date" in col.lower() or "dob" in col.lower()
+    ]
+
+    for col in candidate_date_cols:
+        if col in df.columns:
             try:
                 df[col] = pd.to_datetime(df[col], errors="raise")
+                df[f"days_since_{col}"] = (today - df[col]).dt.days
+                df.drop(columns=[col], inplace=True)
             except Exception:
-                continue  # Skip non-date columns
-
-        if is_datetime64_any_dtype(df[col]):
-            df[f"days_since_{col}"] = (today - df[col]).dt.days
-            df.drop(columns=[col], inplace=True)
+                continue  # If conversion fails, move on
 
     return df
 

@@ -4,9 +4,12 @@ data:
   id_cols: ["claim_id", "patient_id"]
   target_col: "denial_flag"
 
+train:
+  test_size : 0.2
+  random_state: 42
+  cv_folds: 5
+  model: "lgbm"
 
-random_state: 42
-cv_folds: 5
 
 model_selection:
   weights:

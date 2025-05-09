@@ -46,3 +46,7 @@ venv.bak/
 *.pkl
 
 notes.txt
+
+logs/
+models/
+*.pkl
