@@ -22,6 +22,8 @@ Output:
 Note:
     - All data is synthetic and fully de-identified, compliant with HIPAA and safe for ML experimentation.
     - Denial labels are generated using deterministic and probabilistic rules inspired by real-world payer behavior.
+
+Author: Claim Flow Engine Project
 """
 
 # -----------------------------------------------------------------------------

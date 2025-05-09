@@ -1,3 +1,40 @@
+"""
+balance_claims.py
+
+This script performs class balancing on healthcare claims data used for denial prediction modeling
+in the ClaimFlowEngine pipeline. It up-samples the minority class (`denial_flag == 0`) to mitigate
+class imbalance issues during model training.
+
+Usage:
+    python balance_claims.py --factor 2.0 --config config/config.yaml
+
+Core Functionality:
+    • Loads the ML-ready claims dataset defined in the config file.
+    • Identifies the minority and majority classes based on the `denial_flag` column.
+    • Upsamples the minority class by a configurable factor using bootstrapped resampling.
+    • Outputs a balanced dataset to the path specified in the config.
+
+Args:
+    --factor (float): Upsampling multiplier for the minority class (default: 2.0).
+    --config (str): Path to YAML config file with input and output data paths.
+
+Inputs:
+    - data/processed/claims.csv (from config['data']['default_path'])
+
+Outputs:
+    - data/processed/balanced_claims.csv (to config['data']['balanced_path'])
+
+Notes:
+    - The upsampling is done using scikit-learn’s `resample` function with replacement.
+    - Output is shuffled to maintain random distribution before saving.
+    - The script is part of the preprocessing pipeline and should be run prior to model training.
+
+Example:
+    $ python balance_claims.py --factor 3.0 --config config/config.yaml
+
+Author: Claim Flow Engine Project
+"""
+
 import argparse
 import pandas as pd
 from sklearn.utils import resample

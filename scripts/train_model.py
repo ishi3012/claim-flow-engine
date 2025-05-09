@@ -12,6 +12,8 @@ like Airflow, Vertex Pipelines, or bash scripts.
 
 Usage:
     python scripts/train_model.py --config config/config.yaml --log_level info
+
+Author: Claim Flow Engine Project
 """
 
 import argparse

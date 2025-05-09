@@ -1,9 +1,33 @@
 """
 features.py
 
-Feature engineering utilities for preprocessing healthcare claim data.
-Includes logic for date transformation, missing value imputation, and
-column-wise preprocessing pipelines for use with scikit-learn models.
+Feature engineering module for the ClaimFlowEngine project.
+
+This script provides preprocessing utilities tailored for structured healthcare claims data,
+preparing features for use in downstream denial prediction models. It handles:
+    • Date normalization into 'days since' format.
+    • Missing value imputation.
+    • Categorical encoding and numeric scaling via a unified scikit-learn pipeline.
+    • Automatic feature type detection (numeric vs categorical).
+
+Key Functions:
+    - replace_none_with_nan: Ensures compatibility with sklearn by replacing None with np.nan.
+    - preprocess_dates: Converts datetime columns into elapsed time features.
+    - get_feature_types: Splits DataFrame columns into numeric and categorical.
+    - build_feature_pipeline: Constructs a ColumnTransformer for ML-ready preprocessing.
+    - describe_features: Prints summary statistics on feature types and missing values.
+
+Intended Usage:
+    - Called during preprocessing of ML training and inference pipelines.
+    - Integrated with `train_denial_predictor.py` and related model components.
+
+Example:
+    >>> X = replace_none_with_nan(df)
+    >>> X = preprocess_dates(X)
+    >>> pipeline = build_feature_pipeline(X)
+    >>> X_transformed = pipeline.fit_transform(X)
+
+Author: ClaimFlowEngine Project
 """
 
 import numpy as np

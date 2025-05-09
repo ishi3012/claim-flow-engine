@@ -16,3 +16,54 @@ model_selection:
     auc: 0.2
     f1: 0.3
     recall: 0.5
+
+clustering:
+  embedding_model: all-MiniLM-L6-v2
+  embedding_cache: data/embeddings.pkl
+  output_path: clustered_claims.csv
+  n_neighbors: 30
+  min_dist: 0.0
+  n_components: 10
+  hdbscan_min_cluster_size: 15
+  random_state: 42
+  umap_metric: cosine
+  hdbscan_metric: euclidean
+  summarize_clusters: true
+  plot_clusters: true
+  cluster_plot_path: outputs/cluster_plot.png
+  save_cluster_summary: true
+  cluster_summary_path: outputs/cluster_summary.csv
+
+routing:
+  weights:
+    claim_age_days: 0.3
+    denial_severity: 0.5
+    payer_complexity: 0.2
+
+  team_mapping:
+    auth required: "Team A"
+    medical necessity: "Team B"
+    coding error: "Team C"
+    duplicate billing: "Team D"
+    missing info: "Team E"
+
+  payer_team_map:
+    UHC: "Team A"
+    Aetna: "Team B"
+    Cigna: "Team C"
+    Medicare: "Team D"
+
+  default_team: "General Queue"
+
+  severity_map:
+    auth required: 0.9
+    medical necessity: 0.8
+    coding error: 0.6
+    duplicate billing: 0.2
+    missing info: 0.5
+
+  payer_turnaround:
+    UHC: 10
+    Aetna: 15
+    Cigna: 8
+    Medicare: 20

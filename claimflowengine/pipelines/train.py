@@ -8,6 +8,8 @@ trained model artifact, and experiment logs.
 Intended to be wrapped later as a @kfp.component for Vertex AI Pipelines.
 """
 
+from __future__ import annotations
+
 import pandas as pd
 import numpy as np
 import joblib
