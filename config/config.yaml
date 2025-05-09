@@ -2,6 +2,7 @@ data:
   default_path: "processed/claims.csv"
   balanced_path: "processed/balanced_claims.csv"
   id_cols: ["claim_id", "patient_id"]
+  target_col: "denial_flag"
 
 
 random_state: 42
