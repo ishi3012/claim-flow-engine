@@ -4,6 +4,11 @@ data:
   id_cols: ["claim_id", "patient_id"]
   target_col: "denial_flag"
 
+models:
+  model_path: models/denial_model.joblib
+  cluster_model_path: models/cluster_model.joblib
+  cluster_label_path: models/cluster_labels.joblib
+
 train:
   test_size : 0.2
   random_state: 42

@@ -3,7 +3,7 @@
 > An Agentic AI System for Smart Healthcare Claim Denial Prediction and Routing
 
 <p align="center">
-  <img src="ClaimFlowEngine/images/resized.png" alt="System Diagram" width="500"/>
+  <img src="claimflowengine/images/resized.png" alt="System Diagram" width="500"/>
 </p>
 
 ClaimFlowEngine is a modular, agentic AI system designed to predict claim denials, analyze root causes, and intelligently route high-complexity A/R claims to resolution teams. It integrates machine learning, unsupervised clustering, and reinforcement learning-inspired logic to automate and optimize revenue cycle workflows in healthcare.
