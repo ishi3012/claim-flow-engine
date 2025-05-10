@@ -21,7 +21,7 @@ ClaimFlowEngine is a modular, agentic AI system designed to predict claim denial
 ---
 
 ## 🧠 System Architecture
-
+<pre>
 ```mermaid
 flowchart TD
     A[Raw / Synthetic Claims Data] --> B[ML Feature Engineering]
@@ -30,6 +30,7 @@ flowchart TD
     D --> E[RL Routing Policy Engine]
     E --> F[FastAPI Endpoint / Agent Execution]
 ```
+</pre>
 ### 🧠 Why Agentic Architecture?
 
 ClaimFlowEngine is built using a modular, **agentic AI architecture** — leveraging Google’s Agent Development Kit (ADK) to enable intelligent decision-making across denial prediction, root cause clustering, and smart workflow routing.
