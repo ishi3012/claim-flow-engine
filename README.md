@@ -30,6 +30,23 @@ flowchart TD
     D --> E[RL Routing Policy Engine]
     E --> F[FastAPI Endpoint / Agent Execution]
 ```
+### 🧠 Why Agentic Architecture?
+
+ClaimFlowEngine is built using a modular, **agentic AI architecture** — leveraging Google’s Agent Development Kit (ADK) to enable intelligent decision-making across denial prediction, root cause clustering, and smart workflow routing.
+
+#### 🔍 What This Enables:
+- **Tool-augmented reasoning**: Agents can sequentially invoke ML tools — `predictor → cluster → router` — based on context, with logic chaining (e.g., skip clustering if claim isn't denied).
+- **Dynamic decision workflows**: Move beyond static APIs by enabling adaptable logic (e.g., escalate edge cases, defer to human-in-the-loop).
+- **Scalable modularity**: New tools like “Appeal Generator” or “Payer Policy Retriever” can be plugged in with minimal changes to core logic.
+- **Production readiness**: ADK traces each invocation with inputs, outputs, and time-to-resolution — supporting auditability, debuggability, and feedback loops.
+
+> 📈 Why It Matters: In real-world RCM environments, healthcare workflows aren't linear. Agentic architecture brings AI closer to **how operations teams actually think** — with dynamic branching, reasoning, and escalation.
+
+This dual-interface design (REST + Agent) helps the platform scale across:
+- Internal integrations (FastAPI endpoints)
+- Intelligent assistants (LLM + Tool agents)
+- Enterprise-grade orchestration (Vertex Pipelines + ADK agents)
+
 ---
 
 ## 🛠 Tech Stack
