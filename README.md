@@ -19,19 +19,19 @@ This project is designed to simulate **real-world Revenue Cycle Management (RCM)
 
 ## Key Features
 
-- **Real-time Denial Prediction**  
+- **Real-time Denial Prediction**
   Uses XGBoost and LightGBM models trained on structured healthcare claims and EHR metadata.
 
-- **Root Cause Clustering**  
+- **Root Cause Clustering**
   Combines Sentence-BERT embeddings with UMAP + HDBSCAN to group denied claims by latent denial drivers.
 
-- **Routing Engine**  
+- **Routing Engine**
   Applies a hybrid rule-based and ML-inspired logic to prioritize claims by complexity, denial type, and team expertise.
 
-- **FastAPI Inference API**  
+- **FastAPI Inference API**
   Provides REST endpoints for predictions, clustering, and routing in real-time workflows.
 
-- **CI/CD Ready**  
+- **CI/CD Ready**
   Integrated with GitHub Actions, pytest, mypy, ruff, black, and pre-commit from Day 1.
 
 ---
