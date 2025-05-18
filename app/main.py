@@ -27,7 +27,7 @@ from app.schemas import ClaimInput, ClaimPredictionResponse
 app: FastAPI = FastAPI(title="ClaimFlowEngine", version="0.1.0")
 
 
-@app.get("/ping", response_class=JSONResponse)
+@app.get("/ping", response_class=JSONResponse)  # type: ignore[misc]
 def ping() -> dict[str, str]:
     """
     Health check endpoint.
@@ -38,8 +38,8 @@ def ping() -> dict[str, str]:
     return {"message": "pong"}
 
 
-@app.post("/predict", response_model=ClaimPredictionResponse)
-def predict_claim(input_claim: ClaimInput):
+@app.post("/predict", response_model=ClaimPredictionResponse)  # type: ignore[misc]
+def predict_claim(input_claim: ClaimInput) -> ClaimPredictionResponse:
     """
     Replace this with actual model inference later.
     """

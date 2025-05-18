@@ -1,32 +1,36 @@
+# mypy: disable-error-code=misc
 """
 Module: schemas.py
 
-    Module Description:
-        Defines Pydantic schemas for request and response handling in ClaimFlowEngine's FastAPI app.
+Module Description:
+    Defines Pydantic schemas for request and response handling in ClaimFlowEngine's
+    FastAPI app.
 
-    Features:
-        - Input schema for receiving claim data in POST requests.
-        - Output schema for structured prediction responses.
-        - Fully typed and FastAPI-compatible.
+Features:
+    - Input schema for receiving claim data in POST requests.
+    - Output schema for structured prediction responses.
+    - Fully typed and FastAPI-compatible.
 
-    Intended Use:
-        Used by FastAPI routes to validate incoming claim payloads and format outgoing prediction responses.
+Intended Use:
+    Used by FastAPI routes to validate incoming claim payloads and format outgoing
+    prediction responses.
 
-    Inputs:
-        - Claim features (demographics, codes, payer info).
+Inputs:
+    - Claim features (demographics, codes, payer info).
 
-    Outputs:
-        - Denial probability and reasons.
+Outputs:
+    - Denial probability and reasons.
 
-    Functions:
-        - ClaimInput: input schema for prediction.
-        - ClaimPredictionResponse: output schema.
+Functions:
+    - ClaimInput: input schema for prediction.
+    - ClaimPredictionResponse: output schema.
 
-    Author: ClaimFlowEngine team
+Author: ClaimFlowEngine team
 """
 
-from pydantic import BaseModel, Field
 from typing import List, Optional
+
+from pydantic import BaseModel, Field
 
 
 class ClaimInput(BaseModel):
@@ -57,5 +61,5 @@ class ClaimPredictionResponse(BaseModel):
         ..., description="Top 3 predicted reasons for denial."
     )
     model_version: Optional[str] = Field(
-        None, description="Version of the deployed model used for prdiction."
+        None, description="Version of the deployed model used for prediction."
     )
