@@ -110,7 +110,15 @@ pip install -r requirements.txt
 
 ```bash
 uvicorn app.main:app --reload
+
 ```
+4. **Input dataset** :
+
+```bash
+# Place your raw claims data in:
+data/raw_claims.csv
+```
+
 
 ---
 

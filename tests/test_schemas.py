@@ -3,7 +3,7 @@
 from app.schemas import ClaimInput, ClaimPredictionResponse
 
 
-def test_claim_input_schema_instantiation():
+def test_claim_input_schema_instantiation() -> None:
     sample = ClaimInput(
         claim_id="CLM123",
         patient_age=45,
@@ -17,7 +17,7 @@ def test_claim_input_schema_instantiation():
     assert sample.patient_age == 45
 
 
-def test_claim_prediction_response_schema():
+def test_claim_prediction_response_schema() -> None:
     response = ClaimPredictionResponse(
         denial_probability=0.85,
         top_denial_reasons=["coding error", "prior auth missing"],

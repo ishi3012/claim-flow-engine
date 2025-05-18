@@ -1,12 +1,13 @@
 # tests/test_main.py
 
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
 
 
-def test_predict_endpoint_mock():
+def test_predict_endpoint_mock() -> None:
     payload = {
         "claim_id": "CLM123",
         "patient_age": 34,
