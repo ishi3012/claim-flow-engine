@@ -22,11 +22,13 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
+from app.schemas import ClaimInput, ClaimPredictionResponse
+
 app: FastAPI = FastAPI(title="ClaimFlowEngine", version="0.1.0")
 
 
 @app.get("/ping", response_class=JSONResponse)
-async def ping() -> dict[str, str]:
+def ping() -> dict[str, str]:
     """
     Health check endpoint.
 
@@ -34,3 +36,19 @@ async def ping() -> dict[str, str]:
         dict[str, str]: JSON with {"message": "pong"}
     """
     return {"message": "pong"}
+
+
+@app.post("/predict", response_model=ClaimPredictionResponse)
+def predict_claim(input_claim: ClaimInput):
+    """
+    Replace this with actual model inference later.
+    """
+    return ClaimPredictionResponse(
+        denial_probability=0.75,
+        denial_reasons=[
+            "missing authorization",
+            "invalid diagnosis",
+            "policy exclusion",
+        ],
+        model_version="v0.1-dummy",
+    )
