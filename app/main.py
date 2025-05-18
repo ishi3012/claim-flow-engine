@@ -45,7 +45,7 @@ def predict_claim(input_claim: ClaimInput):
     """
     return ClaimPredictionResponse(
         denial_probability=0.75,
-        denial_reasons=[
+        top_denial_reasons=[
             "missing authorization",
             "invalid diagnosis",
             "policy exclusion",
