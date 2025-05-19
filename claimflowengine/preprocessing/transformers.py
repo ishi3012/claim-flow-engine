@@ -1,25 +1,28 @@
 """
-    Module: transformers.py
+Module: transformers.py
 
-    Description:
-        Builds a reusable scikit-learn ColumnTransformer pipeline for modeling.
+Description:
+    Builds a reusable scikit-learn ColumnTransformer pipeline
+    for model training and inference.
 
-    Features:
-    - OneHotEncoder for categoricals
-    - Passthrough for numeric and boolean features
-    - Handles unknown categories in inference
+Features:
+- OneHotEncoder for categorical features (payer_id, provider_type, etc.)
+- StandardScaler for numeric features (age, amount, etc.)
+- Passthrough for boolean flags (prior_denials_flag, etc.)
+- Handles missing values with SimpleImputer
+- Ensures all output is dense (sparse_threshold=0.0)
 
-    Functions:
-    - get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer
+Functions:
+- get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer
 
-    Author: ClaimFlowEngine Team
+Author: ClaimFlowEngine Team
 """
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 
 
 def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
@@ -30,9 +33,10 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
         df (pd.DataFrame): DataFrame with all engineered features.
 
     Returns:
-        ColumnTransformer: A pipeline-ready transformer.
+        ColumnTransformer: A pipeline-ready transformer
+        with dense numeric output.
     """
-    NUMERIC_FEATURES_ALL = [
+    numeric_features = [
         "claim_age_days",
         "note_length",
         "patient_age",
@@ -40,7 +44,7 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
         "days_to_submission",
     ]
 
-    BOOLEAN_FEATURES_ALL = [
+    boolean_features = [
         "is_resubmission",
         "prior_denials_flag",
         "contains_auth_term",
@@ -48,37 +52,52 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
         "accident_indicator",
     ]
 
-    CATEGORICAL_FEATURES_ALL = [
+    categorical_features = [
         "payer_id",
         "provider_type",
+        "plan_type",
+        "claim_type",
+        "billing_provider_specialty",
+        "facility_code",
+        "diagnosis_code",
+        "procedure_code",
     ]
-    categorical_features = [f for f in NUMERIC_FEATURES_ALL if f in df.columns]
-    numerical_features = [f for f in BOOLEAN_FEATURES_ALL if f in df.columns]
-    boolean_features = [f for f in CATEGORICAL_FEATURES_ALL if f in df.columns]
+
+    numeric_features = [f for f in numeric_features if f in df.columns]
+    boolean_features = [f for f in boolean_features if f in df.columns]
+    categorical_features = [f for f in categorical_features if f in df.columns]
 
     preprocessor = ColumnTransformer(
         transformers=[
             (
-                "numerical",
+                "num",
                 Pipeline(
                     [
                         ("imputer", SimpleImputer(strategy="mean")),
                         ("scaler", StandardScaler()),
                     ]
                 ),
-                numerical_features,
+                numeric_features,
             ),
             (
-                "boolean",
+                "bool",
                 Pipeline(
                     [
                         ("imputer", SimpleImputer(strategy="most_frequent")),
+                        (
+                            "to_int",
+                            FunctionTransformer(
+                                lambda x: x.astype(int),
+                                validate=False,
+                                feature_names_out="one-to-one",
+                            ),
+                        ),
                     ]
                 ),
                 boolean_features,
             ),
             (
-                "categorical",
+                "cat",
                 Pipeline(
                     [
                         ("imputer", SimpleImputer(strategy="most_frequent")),
@@ -87,7 +106,9 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
                 ),
                 categorical_features,
             ),
-        ]
+        ],
+        remainder="drop",
+        sparse_threshold=0.0,
     )
 
     return preprocessor

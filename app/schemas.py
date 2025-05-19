@@ -3,63 +3,132 @@
 Module: schemas.py
 
 Module Description:
-    Defines Pydantic schemas for request and response handling in ClaimFlowEngine's
-    FastAPI app.
+    - Defines typed Pydantic schemas for secure input/output
+    handling in ClaimFlowEngine's FastAPI denial prediction microservice.
+    - Ensures HIPAA-safe data flow for ML model inference.
 
 Features:
-    - Input schema for receiving claim data in POST requests.
-    - Output schema for structured prediction responses.
-    - Fully typed and FastAPI-compatible.
+    - PII/PHI-safe input schema (`ClaimInput`)
+    - Modular, type-enforced design with `Annotated` syntax
+    - Clean output schema (`ClaimPredictionResponse`) for safe response exposure
+    - Supports explainability and downstream clustering logic
 
 Intended Use:
-    Used by FastAPI routes to validate incoming claim payloads and format outgoing
-    prediction responses.
+    Used in FastAPI POST endpoints and ML pipelines
+    for denial prediction and workflow orchestration.
 
 Inputs:
-    - Claim features (demographics, codes, payer info).
+    - De-identified claim features (demographics, clinical codes, payer metadata, flags)
 
 Outputs:
-    - Denial probability and reasons.
-
-Functions:
-    - ClaimInput: input schema for prediction.
-    - ClaimPredictionResponse: output schema.
+    - Denial risk prediction, potential denial reasons, model metadata
 
 Author: ClaimFlowEngine team
 """
 
-from typing import List, Optional
+from typing import Annotated, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
+# ----------------------
+# Input Schema
+# ----------------------
+
 
 class ClaimInput(BaseModel):
-    claim_id: str = Field(..., description="Unique Identifier for the claim.")
-    patient_age: int = Field(..., ge=0, le=120, description="Age of the patient.")
-    patient_gender: str = Field(..., description="Gender of the patient (M/F/0)")
-    diagnosis_codes: List[str] = Field(
-        ..., description="List of ICD-10 diagnosis codes."
-    )
-    procedure_codes: List[str] = Field(
-        ..., description="List of CPT/HCPCS procedure codes."
-    )
-    provider_npi: str = Field(..., description="National Provider Indentifier.")
-    payer_id: str = Field(..., description="Unique identifier of the payer.")
-    service_location: Optional[str] = Field(
-        None, description="Facility or place of service."
-    )
-    previous_denial: Optional[bool] = Field(
-        False, description="Was the claim previously denied?"
-    )
+    """
+    Schema for incoming claim data used for denial prediction.
+
+    All fields are de-identified.
+    Supports FastAPI request validation and typed model inputs.
+    """
+
+    # Abstracted Demographics
+    patient_age: Annotated[int, Field(ge=0, le=120)]
+    gender: Literal["M", "F", "U"]
+
+    # Provider & Clinical Metadata
+    provider_type: Annotated[str, Field(min_length=1)]
+    billing_provider_specialty: Optional[str]
+    claim_type: Literal["professional", "institutional", "inpatient", "outpatient"]
+    diagnosis_code: str
+    procedure_code: str
+    facility_code: Optional[str]
+    place_of_service: Optional[str]
+
+    # Time & Financials
+    claim_age_days: Annotated[int, Field(ge=0)]
+    days_to_submission: Optional[Annotated[int, Field(ge=0)]]
+    total_charge_amount: Annotated[float, Field(ge=0.0)]
+
+    # Payer Metadata
+    payer_id: Annotated[str, Field(min_length=3, max_length=10)]
+    plan_type: Optional[Literal["medicare", "medicaid", "commercial", "other"]]
+
+    # Binary Flags & Derived Features
+    prior_authorization: Optional[Literal[0, 1]]
+    accident_indicator: Optional[Literal[0, 1]]
+    prior_denials_flag: Optional[Literal[0, 1]]
+    is_resubmission: Optional[Literal[0, 1]]
+    contains_auth_term: Optional[bool]
+    note_length: Optional[Annotated[int, Field(ge=0)]]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "patient_age": 67,
+                "gender": "F",
+                "provider_type": "Hospital",
+                "billing_provider_specialty": "Orthopedics",
+                "claim_type": "inpatient",
+                "diagnosis_code": "M17.11",
+                "procedure_code": "27447",
+                "facility_code": "01",
+                "place_of_service": "21",
+                "claim_age_days": 30,
+                "days_to_submission": 10,
+                "total_charge_amount": 12000.0,
+                "payer_id": "12345",
+                "plan_type": "medicare",
+                "prior_authorization": 1,
+                "accident_indicator": 0,
+                "prior_denials_flag": 1,
+                "is_resubmission": 0,
+                "contains_auth_term": True,
+                "note_length": 128,
+            }
+        }
+
+
+# ----------------------
+# Output Schema
+# ----------------------
 
 
 class ClaimPredictionResponse(BaseModel):
-    denial_probability: float = Field(
-        ..., ge=0.0, le=1.0, description="Predicted probability of denial."
-    )
-    top_denial_reasons: List[str] = Field(
-        ..., description="Top 3 predicted reasons for denial."
-    )
-    model_version: Optional[str] = Field(
-        None, description="Version of the deployed model used for prediction."
-    )
+    """
+    Schema for model prediction output sent back to client or UI layer.
+
+    Devoid of any PII. Supports downstream explainability and routing.
+    """
+
+    denial_probability: Annotated[float, Field(ge=0.0, le=1.0)]
+    top_denial_reasons: List[str]
+    model_version: Optional[str]
+    routing_cluster_id: Optional[str]
+    explainability_scores: Optional[dict[str, float]]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "denial_probability": 0.84,
+                "top_denial_reasons": ["Authorization missing", "Service not covered"],
+                "model_version": "v1.2.1",
+                "routing_cluster_id": "CL-04",
+                "explainability_scores": {
+                    "prior_authorization": 0.23,
+                    "claim_type": 0.18,
+                    "payer_id": 0.15,
+                },
+            }
+        }

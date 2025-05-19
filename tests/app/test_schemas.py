@@ -5,15 +5,27 @@ from app.schemas import ClaimInput, ClaimPredictionResponse
 
 def test_claim_input_schema_instantiation() -> None:
     sample = ClaimInput(
-        claim_id="CLM123",
         patient_age=45,
-        patient_gender="F",
-        diagnosis_codes=["I10", "E11.9"],
-        procedure_codes=["99213", "80050"],
-        provider_npi="1234567890",
+        gender="F",
+        provider_type="Hospital",
+        billing_provider_specialty="Oncology",
+        claim_type="inpatient",
+        diagnosis_code="I10",
+        procedure_code="99213",
+        facility_code="01",
+        claim_age_days=20,
+        days_to_submission=3,
+        total_charge_amount=1500.0,
         payer_id="PAYER001",
+        plan_type="medicare",
+        prior_authorization=1,
+        accident_indicator=0,
+        prior_denials_flag=1,
+        is_resubmission=0,
+        contains_auth_term=True,
+        note_length=120,
     )
-    assert sample.claim_id == "CLM123"
+
     assert sample.patient_age == 45
 
 

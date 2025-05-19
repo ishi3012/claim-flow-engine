@@ -2,14 +2,14 @@ from pathlib import Path
 
 import pandas as pd
 
+from app.schemas import ClaimInput
 from claimflowengine.preprocessing.build_features import preprocess_and_save
-from claimflowengine.preprocessing.features import engineer_features
+from claimflowengine.preprocessing.feature_engineering import engineer_features
 from claimflowengine.preprocessing.text_cleaning import clean_text_fields
 from claimflowengine.preprocessing.transformers import get_transformer_pipeline
 
 
 def test_preprocess_and_save_runs(tmp_path: Path) -> None:
-    """E2E test for legacy schema pipeline"""
     dummy_data = pd.DataFrame(
         {
             "claim_id": [1],
@@ -25,6 +25,10 @@ def test_preprocess_and_save_runs(tmp_path: Path) -> None:
             "patient_dob": ["1980-01-01"],
         }
     )
+    dummy_data["resubmission"] = dummy_data["resubmission"].astype(int)
+    dummy_data["prior_authorization"] = 1
+    dummy_data["accident_indicator"] = 0
+
     raw_path = tmp_path / "raw.csv"
     out_path = tmp_path / "processed.csv"
     dummy_data.to_csv(raw_path, index=False)
@@ -38,7 +42,6 @@ def test_preprocess_and_save_runs(tmp_path: Path) -> None:
 
 
 def test_preprocess_and_save_with_edi_schema(tmp_path: Path) -> None:
-    """E2E test for EDI 837 schema pipeline"""
     edi_data = pd.DataFrame(
         {
             "claim_id": [2],
@@ -63,6 +66,7 @@ def test_preprocess_and_save_with_edi_schema(tmp_path: Path) -> None:
             "followup_notes": ["Submitted twice"],
         }
     )
+
     raw_path = tmp_path / "edi_raw.csv"
     out_path = tmp_path / "edi_processed.csv"
     edi_data.to_csv(raw_path, index=False)
@@ -74,6 +78,7 @@ def test_preprocess_and_save_with_edi_schema(tmp_path: Path) -> None:
     assert any("patient_age" in col for col in processed.columns)
     assert any("prior_authorization" in col for col in processed.columns)
     assert any("claim_age_days" in col for col in processed.columns)
+    assert processed.columns.is_unique
 
 
 def test_text_cleaning_simple_case() -> None:
@@ -96,12 +101,12 @@ def test_engineer_features_completes() -> None:
             "denial_reason": ["Authorization required"],
             "resubmission": [1],
             "followup_notes_clean": ["call made to payer"],
-            "denial_reason_clean": ["authorization required"],
+            "denial_reason_clean": ["auth required"],
         }
     )
-    df = clean_text_fields(df)
     result = engineer_features(df)
     assert "claim_age_days" in result.columns
+    assert "note_length" in result.columns
     assert result["contains_auth_term"].iloc[0]
 
 
@@ -115,13 +120,45 @@ def test_transformer_pipeline_output_shape() -> None:
             "patient_age": [43, 51],
             "total_charge_amount": [1200.0, 900.0],
             "days_to_submission": [3, 5],
-            "is_resubmission": [True, False],
-            "prior_denials_flag": [True, True],
-            "contains_auth_term": [True, False],
+            "is_resubmission": [1, 0],
+            "prior_denials_flag": [1, 1],
+            "contains_auth_term": [1, 0],
             "prior_authorization": [1, 0],
             "accident_indicator": [0, 1],
         }
     )
+
     pipeline = get_transformer_pipeline(df)
     transformed = pipeline.fit_transform(df)
     assert transformed.shape[0] == 2
+
+
+def test_claim_input_schema_validates() -> None:
+    sample = {
+        "patient_age": 45,
+        "gender": "F",
+        "provider_type": "Clinic",
+        "billing_provider_specialty": "Oncology",
+        "claim_type": "institutional",
+        "diagnosis_code": "I10",
+        "procedure_code": "99213",
+        "facility_code": "123",
+        "claim_age_days": 20,
+        "days_to_submission": 5,
+        "total_charge_amount": 1500.0,
+        "payer_id": "PAYER123",
+        "plan_type": "medicare",
+        "prior_authorization": 1,
+        "accident_indicator": 0,
+        "prior_denials_flag": 1,
+        "is_resubmission": 1,
+    }
+    validated = ClaimInput(**sample)
+    assert validated.gender == "F"
+
+
+def test_text_cleaning_handles_nulls() -> None:
+    df = pd.DataFrame({"denial_reason": [None], "followup_notes": [None]})
+    cleaned = clean_text_fields(df)
+    assert "denial_reason_clean" in cleaned.columns
+    assert cleaned["denial_reason_clean"].iloc[0] == ""

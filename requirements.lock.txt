@@ -3,8 +3,9 @@ anyio==4.9.0
 black==24.3.0
 certifi==2025.4.26
 cfgv==3.4.0
--e git+https://github.com/ishi3012/claim-flow-engine@8296343f8a5d04722d35e0416e49f09d8ccdab82#egg=claimflowengine
+-e git+https://github.com/ishi3012/claim-flow-engine@837c228fa4e3161d5b0622523de2e2a48a16c347#egg=claimflowengine
 click==8.1.8
+coverage==7.8.0
 distlib==0.3.9
 dnspython==2.7.0
 email_validator==2.2.0
@@ -45,6 +46,7 @@ pydantic_core==2.33.2
 Pygments==2.19.1
 pynndescent==0.5.13
 pytest==7.4.4
+pytest-cov==6.1.1
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 python-multipart==0.0.20

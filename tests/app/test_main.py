@@ -9,15 +9,25 @@ client = TestClient(app)
 
 def test_predict_endpoint_mock() -> None:
     payload = {
-        "claim_id": "CLM123",
         "patient_age": 34,
-        "patient_gender": "F",
-        "diagnosis_codes": ["E11.9", "I10"],
-        "procedure_codes": ["99213", "81001"],
-        "provider_npi": "1234567890",
+        "gender": "F",
+        "provider_type": "Clinic",
+        "billing_provider_specialty": "Internal Medicine",
+        "claim_type": "professional",
+        "diagnosis_code": "E11.9",
+        "procedure_code": "99213",
+        "facility_code": "11",
+        "claim_age_days": 15,
+        "days_to_submission": 5,
+        "total_charge_amount": 150.0,
         "payer_id": "PAYER001",
-        "service_location": "IL",
-        "previous_denial": False,
+        "plan_type": "commercial",
+        "prior_authorization": 1,
+        "accident_indicator": 0,
+        "prior_denials_flag": 0,
+        "is_resubmission": 0,
+        "contains_auth_term": True,
+        "note_length": 80,
     }
 
     response = client.post("/predict", json=payload)

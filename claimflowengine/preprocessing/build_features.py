@@ -33,7 +33,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from claimflowengine.preprocessing.features import (
+from claimflowengine.preprocessing.feature_engineering import (
     engineer_edi_features,
     engineer_features,
 )
@@ -68,15 +68,29 @@ def preprocess_and_save(raw_path: str, output_path: str) -> None:
         df = clean_text_fields(df)
 
         # Detect is EDI 837 fields are available in the dataset.
-        if (
-            "patient_gender" in df.columns
-            and "billing_provider_specialty" in df.columns
-        ):
-            logger.info("Detected EDI 837 schema. Applying EDI feature engineering...")
+        edi_critical_fields = [
+            "patient_dob",
+            "service_date",
+            "patient_gender",
+            "facility_code",
+            "billing_provider_specialty",
+            "claim_type",
+            "prior_authorization",
+            "accident_indicator",
+        ]
+
+        edi_available = [col for col in edi_critical_fields if col in df.columns]
+        edi_coverage = len(edi_available) / len(edi_critical_fields)
+        if edi_coverage >= 0.5:  # ✅ at least 50% of EDI features present
+            logger.info(
+                f"Detected partial EDI schema ({edi_coverage:.0%} coverage). "
+                + "Applying EDI feature engineering..."
+            )
             df = engineer_edi_features(df)
         else:
             logger.info(
-                "Legacy schema detected. Skipping EDI-specific feature engineering..."
+                f"EDI schema not detected (only {edi_coverage:.0%} coverage)."
+                + "Skipping EDI features."
             )
 
         logger.info("Engineering common structured features...")
@@ -88,6 +102,11 @@ def preprocess_and_save(raw_path: str, output_path: str) -> None:
         transformed_df = pd.DataFrame(
             transformed, columns=transformer.get_feature_names_out()
         )
+        if "denied" in df.columns:
+            assert len(df) == len(
+                transformed_df
+            ), "Row count mismatch before and after transformation"
+            transformed_df["denied"] = df["denied"].values
 
         logger.info(f"Saving processed data to {output_path}")
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
@@ -100,4 +119,27 @@ def preprocess_and_save(raw_path: str, output_path: str) -> None:
 
 
 if __name__ == "__main__":
-    preprocess_and_save("data/raw_claims.csv", "data/processed_claims.csv")
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Preprocess raw claims csv.")
+    parser.add_argument(
+        "--input",
+        default="claimflowengine/data/raw_claims.csv",
+        help="Path to raw claims CSV "
+        + "(default: claimflowengine/data/raw_claims.csv)",
+    )
+    parser.add_argument(
+        "--output",
+        default="claimflowengine/data/processed_claims.csv",
+        help="Path to save processed CSV "
+        + "(default: claimflowengine/data/processed_claims.csv)",
+    )
+    args = parser.parse_args()
+
+    # Ensure input exists
+    assert Path(args.input).exists(), f"Input file {args.input} not found"
+
+    # Create output directory if needed
+    Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+
+    preprocess_and_save(args.input, args.output)
