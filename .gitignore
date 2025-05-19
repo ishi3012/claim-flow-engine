@@ -46,3 +46,5 @@ checkpoints/
 
 # Data
 data/
+
+htmlcov/
