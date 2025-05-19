@@ -18,7 +18,8 @@
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
@@ -31,15 +32,61 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
     Returns:
         ColumnTransformer: A pipeline-ready transformer.
     """
-    categorical_cols = ["payer_id", "provider_type"]
-    numerical_cols = ["claim_age_days", "note_length"]
-    boolean_cols = ["is_resubmission", "prior_denials_flag", "contains_auth_term"]
+    NUMERIC_FEATURES_ALL = [
+        "claim_age_days",
+        "note_length",
+        "patient_age",
+        "total_charge_amount",
+        "days_to_submission",
+    ]
+
+    BOOLEAN_FEATURES_ALL = [
+        "is_resubmission",
+        "prior_denials_flag",
+        "contains_auth_term",
+        "prior_authorization",
+        "accident_indicator",
+    ]
+
+    CATEGORICAL_FEATURES_ALL = [
+        "payer_id",
+        "provider_type",
+    ]
+    categorical_features = [f for f in NUMERIC_FEATURES_ALL if f in df.columns]
+    numerical_features = [f for f in BOOLEAN_FEATURES_ALL if f in df.columns]
+    boolean_features = [f for f in CATEGORICAL_FEATURES_ALL if f in df.columns]
 
     preprocessor = ColumnTransformer(
         transformers=[
-            ("categorical", OneHotEncoder(handle_unknown="ignore"), categorical_cols),
-            ("numerical", SimpleImputer(strategy="mean"), numerical_cols),
-            ("boolean", "passthrough", boolean_cols),
+            (
+                "numerical",
+                Pipeline(
+                    [
+                        ("imputer", SimpleImputer(strategy="mean")),
+                        ("scaler", StandardScaler()),
+                    ]
+                ),
+                numerical_features,
+            ),
+            (
+                "boolean",
+                Pipeline(
+                    [
+                        ("imputer", SimpleImputer(strategy="most_frequent")),
+                    ]
+                ),
+                boolean_features,
+            ),
+            (
+                "categorical",
+                Pipeline(
+                    [
+                        ("imputer", SimpleImputer(strategy="most_frequent")),
+                        ("encoder", OneHotEncoder(handle_unknown="ignore")),
+                    ]
+                ),
+                categorical_features,
+            ),
         ]
     )
 

@@ -10,7 +10,8 @@ denial prediction modeling.
 Features:
 - Loads data/raw_claims.csv
 - Applies text cleaning to denial_reason and notes
-- Computes structured features (claim age, denial history, etc.)
+- Supports legacy and EDI 837 schemas
+- Computes structured features (claim age, denial history, patient age, etc.)
 - Applies transformers (encoding, imputation)
 - Saves data/processed_claims.csv
 - Can be run as a script or imported as a module
@@ -32,7 +33,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from claimflowengine.preprocessing.features import engineer_features
+from claimflowengine.preprocessing.features import (
+    engineer_edi_features,
+    engineer_features,
+)
 from claimflowengine.preprocessing.text_cleaning import clean_text_fields
 from claimflowengine.preprocessing.transformers import get_transformer_pipeline
 
@@ -63,7 +67,19 @@ def preprocess_and_save(raw_path: str, output_path: str) -> None:
         logger.info("Cleaning text fields...")
         df = clean_text_fields(df)
 
-        logger.info("Engineering features...")
+        # Detect is EDI 837 fields are available in the dataset.
+        if (
+            "patient_gender" in df.columns
+            and "billing_provider_specialty" in df.columns
+        ):
+            logger.info("Detected EDI 837 schema. Applying EDI feature engineering...")
+            df = engineer_edi_features(df)
+        else:
+            logger.info(
+                "Legacy schema detected. Skipping EDI-specific feature engineering..."
+            )
+
+        logger.info("Engineering common structured features...")
         df = engineer_features(df)
 
         logger.info("Applying transformers...")
