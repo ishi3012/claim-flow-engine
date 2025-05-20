@@ -102,7 +102,7 @@ def test_engineer_features_completes() -> None:
         {
             "submission_date": ["2023-01-01"],
             "denial_date": ["2023-01-03"],
-            "denial_reason": ["Authorization required"],
+            "denial_reason": ["auth required"],
             "resubmission": [1],
             "followup_notes_clean": ["call made to payer"],
             "denial_reason_clean": ["auth required"],
@@ -112,7 +112,8 @@ def test_engineer_features_completes() -> None:
     )
     result = engineer_features(df)
     assert "claim_age_days" in result.columns
-    assert "note_length" in result.columns
+    assert "followup_intensity_score" in result.columns
+
     assert result["contains_auth_term"].iloc[0]
 
 
