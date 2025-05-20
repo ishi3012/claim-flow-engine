@@ -3,50 +3,12 @@ Module: train_denial_model.py
 
 Description:
 This script trains and evaluates multiple machine learning models
-(Logistic Regression, XGBoost, LightGBM) on engineered healthcare
+(Logistic Regression, XGBoost, LightGBM, CatBoost, EBM) on engineered healthcare
 claims data to predict claim denials.
 
 It performs cross-validation, logs evaluation metrics,
 selects the best-performing model based on a composite score,
-and serializes the trained model to disk for downstream use
-in real-time prediction APIs or batch workflows.
-
-Features:
-- Loads data/processed_claims.csv from prior feature pipeline
-- Supports multiple model architectures via modular interface
-- Evaluates using Stratified K-Fold cross-validation
-- Computes and logs AUC, F1, Recall, and Accuracy for each model
-- Selects best model using composite scoring heuristic
-- Saves best model to models/denial_model.joblib
-- Can be run as a script or imported as a module
-
-Intended Use:
-- Local experimentation and benchmarking
-- Model registration and deployment pipeline entry point
-- Integration with Vertex AI Pipelines or FastAPI agent
-
-Usage:
-    $ python -m claimflowengine.prediction.train_denial_model
-
-Inputs:
-    data/processed_claims.csv  — Features generated in Day 5
-
-Outputs:
-    models/denial_model.joblib — Trained and serialized best model
-
-Functions:
-    - load_data(): Prepares feature matrix and labels
-    - evaluate_model(): Runs cross-validation and scores performance
-    - composite_score(): Aggregates metric scores into ranking value
-    - main(): Orchestrates training pipeline
-
-Usage:
-    python -m claimflowengine.prediction.train_denial_model \
-    --data data/processed_claims.csv \
-    --transformer models/transformer.joblib \
-    --model models/denial_model.joblib
-Dependencies:
-    - pandas, scikit-learn, xgboost, lightgbm, joblib, logging
+and serializes the trained model to disk.
 
 Author: ClaimFlowEngine Team
 """
@@ -60,6 +22,8 @@ from typing import Any, Dict, Tuple
 import joblib
 import numpy as np
 import pandas as pd
+from catboost import CatBoostClassifier
+from interpret.glassbox import ExplainableBoostingClassifier
 from lightgbm import LGBMClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, recall_score, roc_auc_score
@@ -69,14 +33,10 @@ from xgboost import XGBClassifier
 from claimflowengine.prediction.config import TARGET_COL
 
 Path("logs").mkdir(exist_ok=True)
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s — %(levelname)s — %(message)s",
-    handlers=[
-        logging.FileHandler("logs/train.log", mode="a"),  # or logs/preprocess.log
-        logging.StreamHandler(),
-    ],
+    handlers=[logging.FileHandler("logs/train.log", mode="a"), logging.StreamHandler()],
 )
 logger = logging.getLogger(__name__)
 
@@ -89,10 +49,9 @@ def load_data(data_path: str) -> Tuple[pd.DataFrame, pd.Series]:
         raise ValueError(f"Target column '{TARGET_COL}' not found in dataset")
 
     y = df[TARGET_COL]
-    X = df.drop(columns=[TARGET_COL])
-
-    logger.info(f"Loaded dataset: X shape = {X.shape}, y shape = {y.shape}")
-    return X, y
+    df = df.drop(columns=[TARGET_COL])
+    logger.info(f"Loaded dataset: X shape = {df.shape}, y shape = {y.shape}")
+    return df, y
 
 
 def evaluate_model(
@@ -100,8 +59,8 @@ def evaluate_model(
 ) -> Dict[str, float]:
     class_counts = Counter(y)
     n_splits = min(n_splits, min(class_counts.values()))
-
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+
     aucs, f1s, recalls, accs = [], [], [], []
 
     for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), start=1):
@@ -110,7 +69,19 @@ def evaluate_model(
 
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
-        y_proba = model.predict_proba(X_test)[:, 1]
+
+        logger.info(f"Predicted labels: {np.unique(y_pred, return_counts=True)}")
+        logger.info(f"Actual labels: {np.unique(y_test, return_counts=True)}")
+
+        if hasattr(model, "predict_proba"):
+            y_proba = model.predict_proba(X_test)[:, 1]
+        elif hasattr(model, "decision_function"):
+            raw_scores = model.decision_function(X_test)
+            y_proba = (raw_scores - raw_scores.min()) / (
+                raw_scores.max() - raw_scores.min()
+            )
+        else:
+            y_proba = np.array(y_pred)
 
         aucs.append(roc_auc_score(y_test, y_proba))
         f1s.append(f1_score(y_test, y_pred))
@@ -132,9 +103,9 @@ def evaluate_model(
 
 def composite_score(metrics: Dict[str, float]) -> float:
     return (
-        0.4 * metrics["AUC"]
+        0.5 * metrics["AUC"]
         + 0.3 * metrics["F1_Score"]
-        + 0.2 * metrics["Recall"]
+        + 0.1 * metrics["Recall"]
         + 0.1 * metrics["Accuracy"]
     )
 
@@ -143,7 +114,9 @@ def train_and_save(data_path: str, transformer_path: str, model_path: str) -> No
     X, y = load_data(data_path)
 
     models = {
-        "LogisticRegression": LogisticRegression(max_iter=1000),
+        "LogisticRegression": LogisticRegression(
+            max_iter=1000, class_weight="balanced"
+        ),
         "XGBoost": XGBClassifier(
             use_label_encoder=False,
             eval_metric="logloss",
@@ -162,6 +135,10 @@ def train_and_save(data_path: str, transformer_path: str, model_path: str) -> No
             reg_alpha=1.0,
             reg_lambda=1.0,
         ),
+        "CatBoost": CatBoostClassifier(
+            depth=4, learning_rate=0.05, iterations=100, verbose=0
+        ),
+        "EBM": ExplainableBoostingClassifier(random_state=42, interactions=0),
     }
 
     best_model = None
@@ -181,6 +158,13 @@ def train_and_save(data_path: str, transformer_path: str, model_path: str) -> No
             best_model = model
             best_model_name = name
 
+    for metric in ["AUC", "F1_Score", "Recall", "Accuracy"]:
+        sorted_models = sorted(
+            results.items(), key=lambda x: x[1][metric], reverse=True
+        )
+        top_models = [m[0] for m in sorted_models[:3]]
+        logger.info(f"Top models by {metric}: {top_models}")
+
     logger.info(f"Best Model: {best_model_name} (Score: {best_score:.4f})")
 
     if best_model is None:
@@ -188,12 +172,10 @@ def train_and_save(data_path: str, transformer_path: str, model_path: str) -> No
 
     best_model.fit(X, y)
 
-    # Save model
     Path(model_path).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(best_model, model_path)
     logger.info(f"Trained model saved to {model_path}")
 
-    # Confirm transformer exists
     if not Path(transformer_path).exists():
         logger.warning(f"Transformer file not found at {transformer_path}")
     else:

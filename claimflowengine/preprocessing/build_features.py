@@ -16,15 +16,6 @@ Features:
 - Saves data/processed_claims.csv
 - Can be run as a script or imported as a module
 
-Usage:
-    $ python -m claimflowengine.preprocessing.build_features
-
-Inputs:
-    data/raw_claims.csv
-
-Outputs:
-    data/processed_claims.csv
-
 Author: ClaimFlowEngine Team
 """
 
@@ -69,10 +60,16 @@ def preprocess_and_save(raw_path: str, output_path: str, transformer_dir: str) -
     logger.info(f"Loading raw data from {raw_path}")
     df = pd.read_csv(raw_path)
 
+    # Validate required label column
+    assert (
+        "denied" in df.columns
+    ), "'denied' column must be present in raw data for supervised learning."
+
     logger.info("Cleaning text fields...")
     df = clean_text_fields(df)
 
-    edi_critical = [
+    # Apply EDI-specific features if schema coverage is sufficient
+    edi_fields = [
         "patient_dob",
         "service_date",
         "patient_gender",
@@ -82,8 +79,8 @@ def preprocess_and_save(raw_path: str, output_path: str, transformer_dir: str) -
         "prior_authorization",
         "accident_indicator",
     ]
-    edi_coverage = len([col for col in edi_critical if col in df.columns]) / len(
-        edi_critical
+    edi_coverage = len([col for col in edi_fields if col in df.columns]) / len(
+        edi_fields
     )
     if edi_coverage >= 0.5:
         logger.info(
@@ -91,11 +88,12 @@ def preprocess_and_save(raw_path: str, output_path: str, transformer_dir: str) -
         )
         df = engineer_edi_features(df)
 
+    # Extract label and apply full feature engineering
+    y = df["denied"]
     logger.info("Engineering structured features...")
-    df = engineer_features(df)
+    df = engineer_features(df, y)
 
     logger.info("Splitting features and target...")
-    y = df["denied"]
     X = df.drop(columns=["denied"])
 
     # ------------------------- Target Encode Categoricals -------------------------
@@ -118,16 +116,20 @@ def preprocess_and_save(raw_path: str, output_path: str, transformer_dir: str) -
     # ------------------------- Numeric + Boolean -------------------------
     numeric_features = [
         "claim_age_days",
-        "note_length",
         "patient_age",
         "total_charge_amount",
         "days_to_submission",
+        "payer_deny_rate",
+        "provider_deny_rate",
+        "resubmission_rate_by_payer",
+        "followup_intensity_score",
     ]
     boolean_features = [
         "is_resubmission",
         "contains_auth_term",
         "prior_authorization",
         "accident_indicator",
+        "high_charge_flag",
     ]
     numeric_features = [f for f in numeric_features if f in X.columns]
     boolean_features = [f for f in boolean_features if f in X.columns]

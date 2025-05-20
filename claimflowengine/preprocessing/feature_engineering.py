@@ -8,14 +8,18 @@ Description:
 Features:
 - claim_age_days (safe: submission - service)
 - is_resubmission
-- note_length
+- note_length / followup_intensity_score
 - contains_auth_term
 - patient_age
 - days_to_submission
 - prior_authorization, accident_indicator (binary mapped)
+- payer_deny_rate
+- provider_deny_rate
+- resubmission_rate_by_payer
+- high_charge_flag
 
 Functions:
-- engineer_features(df: pd.DataFrame) -> pd.DataFrame
+- engineer_features(df: pd.DataFrame, y: pd.Series | None = None) -> pd.DataFrame
 - engineer_edi_features(df: pd.DataFrame) -> pd.DataFrame
 
 Author: ClaimFlowEngine Team
@@ -24,46 +28,79 @@ Author: ClaimFlowEngine Team
 import pandas as pd
 
 
-def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
+def engineer_features(df: pd.DataFrame, y: pd.Series | None = None) -> pd.DataFrame:
     """
     Computes new features for denial modeling and clustering.
 
     Args:
         df (pd.DataFrame): Input DataFrame with raw/cleaned fields.
+        y (pd.Series | None): Optional binary target (0 = paid, 1 = denied).
 
     Returns:
         pd.DataFrame: DataFrame with new feature columns added.
     """
     df = df.copy()
 
-    # Calculate claim age in days — SAFE VERSION (NO LEAKAGE)
+    # --- Time-based Features ---
     df["submission_date"] = pd.to_datetime(df["submission_date"], errors="coerce")
     df["service_date"] = pd.to_datetime(df["service_date"], errors="coerce")
     df["claim_age_days"] = (df["submission_date"] - df["service_date"]).dt.days
     df["claim_age_days"] = df["claim_age_days"].astype(float)
 
-    # Resubmission flag
-    if "resubmission" in df.columns:
-        df["is_resubmission"] = df["resubmission"].astype(bool)
-    else:
-        df["is_resubmission"] = False
+    # --- Resubmission Flag ---
+    df["is_resubmission"] = df.get("resubmission", 0).astype(bool)
 
-    # Note length (from cleaned text field)
-    if "followup_notes_clean" in df.columns:
-        df["note_length"] = df["followup_notes_clean"].apply(
-            lambda x: len(str(x).split())
+    # --- Follow-up Intensity Score ---
+    if "followup_notes" in df.columns:
+        df["followup_intensity_score"] = df["followup_notes"].apply(
+            lambda x: min(len(str(x).split()), 100) / 100.0
         )
     else:
-        df["note_length"] = 0
-    df["note_length"] = df["note_length"].astype(float)
+        df["followup_intensity_score"] = 0.0
 
-    # Contains 'auth' keyword in denial_reason_clean
-    if "denial_reason_clean" in df.columns:
-        df["contains_auth_term"] = df["denial_reason_clean"].str.contains(
+    # --- Keyword Match in Denial Reason ---
+    if "denial_reason" in df.columns:
+        df["contains_auth_term"] = df["denial_reason"].str.contains(
             r"\bauth\b", case=False, na=False
         )
     else:
         df["contains_auth_term"] = False
+
+    # --- Domain-Informed Statistical Features (require label) ---
+    if y is not None and len(df) == len(y):
+        df["denied"] = y.values  # Temporarily merge target
+
+        # payer_deny_rate
+        payer_rate = df.groupby("payer_id")["denied"].mean().rename("payer_deny_rate")
+        df = df.merge(payer_rate, how="left", on="payer_id")
+
+        # provider_deny_rate
+        provider_rate = (
+            df.groupby("provider_type")["denied"].mean().rename("provider_deny_rate")
+        )
+        df = df.merge(provider_rate, how="left", on="provider_type")
+
+        # resubmission_rate_by_payer
+        resub_rate = (
+            df.groupby("payer_id")["resubmission"]
+            .mean()
+            .rename("resubmission_rate_by_payer")
+        )
+        df = df.merge(resub_rate, how="left", on="payer_id")
+
+        # df.drop(columns=["denied"], inplace=True, errors="ignore")
+    else:
+        df["payer_deny_rate"] = 0.5
+        df["provider_deny_rate"] = 0.5
+        df["resubmission_rate_by_payer"] = 0.0
+
+    # --- High Charge Flag ---
+    if "total_charge_amount" in df.columns:
+        df["total_charge_amount"] = df["total_charge_amount"].astype(float)
+        threshold = df["total_charge_amount"].median(skipna=True)
+        df["high_charge_flag"] = (df["total_charge_amount"] > threshold).astype(int)
+    else:
+        df["high_charge_flag"] = 0
 
     return df
 

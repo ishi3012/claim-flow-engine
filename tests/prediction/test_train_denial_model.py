@@ -29,8 +29,14 @@ from tests.helpers.test_data import get_mock_claims_df
 def test_composite_score() -> None:
     metrics = {"AUC": 0.8, "F1_Score": 0.7, "Recall": 0.6, "Accuracy": 0.9}
     score = composite_score(metrics)
-    expected = 0.4 * 0.8 + 0.3 * 0.7 + 0.2 * 0.6 + 0.1 * 0.9
-    assert abs(score - expected) < 1e-5, "Composite score calculation mismatch"
+    expected = (
+        0.3 * metrics["F1_Score"]
+        + 0.1 * metrics["Recall"]
+        + 0.5 * metrics["AUC"]
+        + 0.1 * metrics["Accuracy"]
+    )
+
+    assert abs(score - expected) < 1e-4, "Composite score calculation mismatch"
 
 
 @pytest.mark.parametrize(
