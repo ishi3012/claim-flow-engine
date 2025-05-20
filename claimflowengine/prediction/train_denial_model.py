@@ -40,14 +40,21 @@ Functions:
     - composite_score(): Aggregates metric scores into ranking value
     - main(): Orchestrates training pipeline
 
+Usage:
+    python -m claimflowengine.prediction.train_denial_model \
+    --data data/processed_claims.csv \
+    --transformer models/transformer.joblib \
+    --model models/denial_model.joblib
 Dependencies:
     - pandas, scikit-learn, xgboost, lightgbm, joblib, logging
 
 Author: ClaimFlowEngine Team
 """
 
+import argparse
 import logging
 from collections import Counter
+from pathlib import Path
 from typing import Any, Dict, Tuple
 
 import joblib
@@ -55,58 +62,49 @@ import numpy as np
 import pandas as pd
 from lightgbm import LGBMClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
-    accuracy_score,
-    f1_score,
-    recall_score,
-    roc_auc_score,
-)
+from sklearn.metrics import accuracy_score, f1_score, recall_score, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
 from xgboost import XGBClassifier
 
-from claimflowengine.prediction.config import DATA_PATH, MODEL_SAVE_PATH, TARGET_COL
+from claimflowengine.prediction.config import TARGET_COL
 
-# Initialize logging
+Path("logs").mkdir(exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
-    format="%(acstime)s — %(levelname)s — %(message)s",
+    format="%(asctime)s — %(levelname)s — %(message)s",
+    handlers=[
+        logging.FileHandler("logs/train.log", mode="a"),  # or logs/preprocess.log
+        logging.StreamHandler(),
+    ],
 )
 logger = logging.getLogger(__name__)
 
 
-def load_data() -> Tuple[pd.DataFrame, pd.Series]:
-    logger.info(f"Loading data from: {DATA_PATH}")
-    df = pd.read_csv(DATA_PATH)
-    DROP_COLS = [
-        "claim_id",
-        "patient_id",
-        "denial_date",
-        "denial_reason",
-        "followup_notes",
-        "appeal_outcome",
-        "denial_code",
-    ]
+def load_data(data_path: str) -> Tuple[pd.DataFrame, pd.Series]:
+    logger.info(f"Loading transformed features from: {data_path}")
+    df = pd.read_csv(data_path)
+
+    if TARGET_COL not in df.columns:
+        raise ValueError(f"Target column '{TARGET_COL}' not found in dataset")
 
     y = df[TARGET_COL]
-    X = df.drop(columns=[TARGET_COL] + DROP_COLS, errors="ignore")
+    X = df.drop(columns=[TARGET_COL])
 
-    logger.info(f"Loaded dataset shape: X={X.shape}, y={y.shape}")
-
+    logger.info(f"Loaded dataset: X shape = {X.shape}, y shape = {y.shape}")
     return X, y
 
 
 def evaluate_model(
     model: Any, X: pd.DataFrame, y: pd.Series, n_splits: int = 5
 ) -> Dict[str, float]:
-    # Dynamically adjust folds to class counts
     class_counts = Counter(y)
-    min_class_count = min(class_counts.values())
-    n_splits = min(n_splits, min_class_count)
+    n_splits = min(n_splits, min(class_counts.values()))
 
-    kf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
-    aucs, f1_scores, recalls, accuracies = [], [], [], []
+    skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
+    aucs, f1s, recalls, accs = [], [], [], []
 
-    for fold, (train_idx, test_idx) in enumerate(kf.split(X, y), start=1):
+    for fold, (train_idx, test_idx) in enumerate(skf.split(X, y), start=1):
         X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
         y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
 
@@ -115,20 +113,20 @@ def evaluate_model(
         y_proba = model.predict_proba(X_test)[:, 1]
 
         aucs.append(roc_auc_score(y_test, y_proba))
-        f1_scores.append(f1_score(y_test, y_pred))
+        f1s.append(f1_score(y_test, y_pred))
         recalls.append(recall_score(y_test, y_pred))
-        accuracies.append(accuracy_score(y_test, y_pred))
+        accs.append(accuracy_score(y_test, y_pred))
 
         logger.info(
-            f"Fold {fold}: AUC={aucs[-1]:.4f}, F1={f1_scores[-1]:.4f}, "
-            f"Recall={recalls[-1]:.4f}, Accuracy={accuracies[-1]:.4f}"
+            f"Fold {fold}: AUC={aucs[-1]:.4f}, F1={f1s[-1]:.4f}, "
+            f"Recall={recalls[-1]:.4f}, Accuracy={accs[-1]:.4f}"
         )
 
     return {
         "AUC": np.mean(aucs),
-        "F1_Score": np.mean(f1_scores),
+        "F1_Score": np.mean(f1s),
         "Recall": np.mean(recalls),
-        "Accuracy": np.mean(accuracies),
+        "Accuracy": np.mean(accs),
     }
 
 
@@ -141,41 +139,90 @@ def composite_score(metrics: Dict[str, float]) -> float:
     )
 
 
-def main() -> None:
-    X, y = load_data()
+def train_and_save(data_path: str, transformer_path: str, model_path: str) -> None:
+    X, y = load_data(data_path)
 
     models = {
         "LogisticRegression": LogisticRegression(max_iter=1000),
-        "XGBoost": XGBClassifier(use_label_encoder=False, eval_metric="logloss"),
-        "LightGBM": LGBMClassifier(),
+        "XGBoost": XGBClassifier(
+            use_label_encoder=False,
+            eval_metric="logloss",
+            max_depth=3,
+            n_estimators=50,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            reg_alpha=1.0,
+            reg_lambda=1.0,
+        ),
+        "LightGBM": LGBMClassifier(
+            max_depth=3,
+            n_estimators=50,
+            subsample=0.8,
+            colsample_bytree=0.8,
+            reg_alpha=1.0,
+            reg_lambda=1.0,
+        ),
     }
 
-    best_model_name = ""
-    best_score = -1.0
     best_model = None
+    best_score = -1.0
+    best_model_name = ""
+    results = {}
 
     for name, model in models.items():
-        logger.info(f"Training and evaluating model: {name}")
+        logger.info(f"Evaluating model: {name}")
         metrics = evaluate_model(model, X, y)
         score = composite_score(metrics)
-        logger.info(f"{name} — Composite Score: {score:.4f}, Metrics: {metrics}")
+        results[name] = metrics
+        logger.info(f"{name} — Composite Score: {score:.4f} — {metrics}")
 
         if score > best_score:
             best_score = score
-            best_model_name = name
             best_model = model
+            best_model_name = name
 
-    logger.info(f"Best model: {best_model_name} with score {best_score:.4f}")
+    logger.info(f"Best Model: {best_model_name} (Score: {best_score:.4f})")
 
     if best_model is None:
-        raise RuntimeError("No valid model was selected during training.")
+        raise RuntimeError("Training failed — no model selected.")
 
     best_model.fit(X, y)
-    MODEL_SAVE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    joblib.dump(best_model, MODEL_SAVE_PATH)
 
-    logger.info(f"Final model saved to:{MODEL_SAVE_PATH}")
+    # Save model
+    Path(model_path).parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(best_model, model_path)
+    logger.info(f"Trained model saved to {model_path}")
+
+    # Confirm transformer exists
+    if not Path(transformer_path).exists():
+        logger.warning(f"Transformer file not found at {transformer_path}")
+    else:
+        logger.info(f"Transformer found at {transformer_path}")
+
+
+# ---------------------- CLI ----------------------
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--data",
+        default="claimflowengine/data/processed_claims.csv",
+        help="Path to input data CSV",
+    )
+    parser.add_argument(
+        "--transformer",
+        default="claimflowengine/models/transformer.joblib",
+        help="Path to transformer.pkl",
+    )
+    parser.add_argument(
+        "--model",
+        default="claimflowengine/models/denial_model.joblib",
+        help="Path to save model.pkl",
+    )
+    return parser.parse_args()
 
 
 if __name__ == "__main__":
-    main()
+    args = parse_args()
+    train_and_save(
+        data_path=args.data, transformer_path=args.transformer, model_path=args.model
+    )

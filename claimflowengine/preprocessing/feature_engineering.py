@@ -1,14 +1,13 @@
 """
-Module: features.py
+Module: feature_engineering.py
 
 Description:
     Generates structured features from raw or cleaned
     claims data for modeling and clustering.
 
 Features:
-- claim_age_days
+- claim_age_days (safe: submission - service)
 - is_resubmission
-- prior_denials_flag
 - note_length
 - contains_auth_term
 - patient_age
@@ -37,21 +36,19 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.copy()
 
-    # Calculate claim age in days
+    # Calculate claim age in days — SAFE VERSION (NO LEAKAGE)
     df["submission_date"] = pd.to_datetime(df["submission_date"], errors="coerce")
-    df["denial_date"] = pd.to_datetime(df["denial_date"], errors="coerce")
-    df["claim_age_days"] = (df["denial_date"] - df["submission_date"]).dt.days
+    df["service_date"] = pd.to_datetime(df["service_date"], errors="coerce")
+    df["claim_age_days"] = (df["submission_date"] - df["service_date"]).dt.days
     df["claim_age_days"] = df["claim_age_days"].astype(float)
 
-    # Flag for prior denial
-    df["prior_denials_flag"] = df["denial_reason"].notnull() & df[
-        "denial_reason"
-    ].str.strip().ne("")
+    # Resubmission flag
+    if "resubmission" in df.columns:
+        df["is_resubmission"] = df["resubmission"].astype(bool)
+    else:
+        df["is_resubmission"] = False
 
-    # Resubmission flag (assume field is 0/1 or bool)
-    df["is_resubmission"] = df["resubmission"].astype(bool)
-
-    # Note length
+    # Note length (from cleaned text field)
     if "followup_notes_clean" in df.columns:
         df["note_length"] = df["followup_notes_clean"].apply(
             lambda x: len(str(x).split())
@@ -60,7 +57,7 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         df["note_length"] = 0
     df["note_length"] = df["note_length"].astype(float)
 
-    # Contains 'auth' keyword in denial reason
+    # Contains 'auth' keyword in denial_reason_clean
     if "denial_reason_clean" in df.columns:
         df["contains_auth_term"] = df["denial_reason_clean"].str.contains(
             r"\bauth\b", case=False, na=False
@@ -108,7 +105,7 @@ def engineer_edi_features(df: pd.DataFrame) -> pd.DataFrame:
         ).dt.days
         df["days_to_submission"] = df["days_to_submission"].astype(float)
 
-    # Clean up string fields
+    # Normalize key categorical strings
     for col in [
         "patient_gender",
         "billing_provider_specialty",
@@ -119,7 +116,7 @@ def engineer_edi_features(df: pd.DataFrame) -> pd.DataFrame:
         if col in df.columns:
             df[col] = df[col].astype(str).str.lower().str.strip()
 
-    # Total charge amount — ensure float
+    # Ensure numeric for total_charge_amount
     if "total_charge_amount" in df.columns:
         df["total_charge_amount"] = df["total_charge_amount"].astype(float)
 

@@ -23,6 +23,7 @@ def test_preprocess_and_save_runs(tmp_path: Path) -> None:
             "service_date": ["2022-12-28"],
             "total_charge_amount": [1000.0],
             "patient_dob": ["1980-01-01"],
+            "denied": [1],
         }
     )
     dummy_data["resubmission"] = dummy_data["resubmission"].astype(int)
@@ -31,9 +32,10 @@ def test_preprocess_and_save_runs(tmp_path: Path) -> None:
 
     raw_path = tmp_path / "raw.csv"
     out_path = tmp_path / "processed.csv"
+    transformer_path = tmp_path / "transformer.joblib"
     dummy_data.to_csv(raw_path, index=False)
 
-    preprocess_and_save(str(raw_path), str(out_path))
+    preprocess_and_save(str(raw_path), str(out_path), str(transformer_path))
     processed = pd.read_csv(out_path)
 
     assert not processed.empty
@@ -64,14 +66,16 @@ def test_preprocess_and_save_with_edi_schema(tmp_path: Path) -> None:
             "denial_reason": ["Auth required"],
             "resubmission": [0],
             "followup_notes": ["Submitted twice"],
+            "denied": [0],
         }
     )
 
     raw_path = tmp_path / "edi_raw.csv"
     out_path = tmp_path / "edi_processed.csv"
     edi_data.to_csv(raw_path, index=False)
+    transformer_path = tmp_path / "transformer.joblib"
 
-    preprocess_and_save(str(raw_path), str(out_path))
+    preprocess_and_save(str(raw_path), str(out_path), str(transformer_path))
     processed = pd.read_csv(out_path)
 
     assert not processed.empty
@@ -102,6 +106,8 @@ def test_engineer_features_completes() -> None:
             "resubmission": [1],
             "followup_notes_clean": ["call made to payer"],
             "denial_reason_clean": ["auth required"],
+            "service_date": ["2022-12-30"],
+            "denied": [1],
         }
     )
     result = engineer_features(df)
@@ -121,7 +127,6 @@ def test_transformer_pipeline_output_shape() -> None:
             "total_charge_amount": [1200.0, 900.0],
             "days_to_submission": [3, 5],
             "is_resubmission": [1, 0],
-            "prior_denials_flag": [1, 1],
             "contains_auth_term": [1, 0],
             "prior_authorization": [1, 0],
             "accident_indicator": [0, 1],

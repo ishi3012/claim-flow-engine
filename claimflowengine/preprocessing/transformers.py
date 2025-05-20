@@ -3,14 +3,13 @@ Module: transformers.py
 
 Description:
     Builds a reusable scikit-learn ColumnTransformer pipeline
-    for model training and inference.
+    for transforming numeric and boolean features during model training and inference.
 
 Features:
-- OneHotEncoder for categorical features (payer_id, provider_type, etc.)
-- StandardScaler for numeric features (age, amount, etc.)
-- Passthrough for boolean flags (prior_denials_flag, etc.)
-- Handles missing values with SimpleImputer
-- Ensures all output is dense (sparse_threshold=0.0)
+- StandardScaler for numeric features
+- Imputation and integer coercion for boolean features
+- Fully compatible with get_feature_names_out
+- Target encoding is handled externally
 
 Functions:
 - get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer
@@ -18,23 +17,30 @@ Functions:
 Author: ClaimFlowEngine Team
 """
 
+from typing import Any
+
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
+from sklearn.preprocessing import FunctionTransformer, StandardScaler
+
+
+def convert_to_int(x: Any) -> Any:
+    """Safely convert input to int (for bool features)."""
+    return x.astype(int) if hasattr(x, "astype") else x
 
 
 def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
     """
-    Creates a column transformer for model input.
+    Creates a column transformer for numeric and boolean input columns only.
+    Assumes categorical features have already been target-encoded externally.
 
     Args:
-        df (pd.DataFrame): DataFrame with all engineered features.
+        df (pd.DataFrame): DataFrame with pre-engineered features
 
     Returns:
-        ColumnTransformer: A pipeline-ready transformer
-        with dense numeric output.
+        ColumnTransformer: A pipeline-ready transformer for numeric and boolean columns
     """
     numeric_features = [
         "claim_age_days",
@@ -46,26 +52,13 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
 
     boolean_features = [
         "is_resubmission",
-        "prior_denials_flag",
         "contains_auth_term",
         "prior_authorization",
         "accident_indicator",
     ]
 
-    categorical_features = [
-        "payer_id",
-        "provider_type",
-        "plan_type",
-        "claim_type",
-        "billing_provider_specialty",
-        "facility_code",
-        "diagnosis_code",
-        "procedure_code",
-    ]
-
     numeric_features = [f for f in numeric_features if f in df.columns]
     boolean_features = [f for f in boolean_features if f in df.columns]
-    categorical_features = [f for f in categorical_features if f in df.columns]
 
     preprocessor = ColumnTransformer(
         transformers=[
@@ -87,7 +80,7 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
                         (
                             "to_int",
                             FunctionTransformer(
-                                lambda x: x.astype(int),
+                                convert_to_int,
                                 validate=False,
                                 feature_names_out="one-to-one",
                             ),
@@ -96,19 +89,9 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
                 ),
                 boolean_features,
             ),
-            (
-                "cat",
-                Pipeline(
-                    [
-                        ("imputer", SimpleImputer(strategy="most_frequent")),
-                        ("encoder", OneHotEncoder(handle_unknown="ignore")),
-                    ]
-                ),
-                categorical_features,
-            ),
         ],
         remainder="drop",
-        sparse_threshold=0.0,
+        verbose_feature_names_out=True,
     )
 
     return preprocessor
