@@ -14,3 +14,6 @@ TARGET_COL = "denied"
 
 # Output model path
 MODEL_SAVE_PATH = Path("models/denial_model.joblib")
+
+# Transformers  path
+TRANSFORMER_SAVE_PATH = Path("models/transformer.joblib")

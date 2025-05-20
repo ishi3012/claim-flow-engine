@@ -1,0 +1,38 @@
+# Versioned list of features for model training
+
+version: v1.0
+
+features:
+  - num__claim_age_days
+  - num__note_length
+  - num__total_charge_amount
+  - num__days_to_submission
+  - bool__is_resubmission
+  - bool__contains_auth_term
+  - bool__prior_authorization
+  - bool__accident_indicator
+  # - cat__payer_id_PAYER001
+  # - cat__payer_id_PAYER002
+  # - cat__payer_id_PAYER003
+  # - cat__payer_id_PAYER004
+  - cat__provider_type_clinic
+  - cat__provider_type_hospital
+  - cat__provider_type_independent
+  - cat__plan_type_medicare
+  - cat__plan_type_private
+  - cat__claim_type_institutional
+  - cat__claim_type_professional
+  - cat__billing_provider_specialty_cardiology
+  - cat__billing_provider_specialty_dermatology
+  - cat__billing_provider_specialty_oncology
+  - cat__billing_provider_specialty_orthopedics
+  - cat__billing_provider_specialty_radiology
+  - cat__facility_code_11
+  - cat__facility_code_21
+  - cat__facility_code_23
+  # - cat__diagnosis_code_E11.9
+  # - cat__diagnosis_code_M54.5
+  # - cat__diagnosis_code_Z00.00
+  # - cat__procedure_code_85025
+  # - cat__procedure_code_93000
+  # - cat__procedure_code_99213
