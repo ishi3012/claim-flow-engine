@@ -15,12 +15,14 @@ Functions:
 Author: ClaimFlowEngine Team
 """
 
-import logging
 import re
 
 import pandas as pd
 
-logger = logging.getLogger(__name__)
+from claimflowengine.utils.logger import get_logger
+
+# Initialize Logging
+logger = get_logger("preprocessing")
 
 
 def _normalize_text(text: str) -> str:
@@ -69,6 +71,7 @@ def clean_text_fields(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: DataFrame with cleaned text fields.
     """
     df = df.copy()
+    logger.info("Clean text fields...")
 
     if "denial_reason" in df.columns:
         logger.info("Cleaning denial_reason column")

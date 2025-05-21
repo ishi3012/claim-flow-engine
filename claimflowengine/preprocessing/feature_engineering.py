@@ -27,6 +27,11 @@ Author: ClaimFlowEngine Team
 
 import pandas as pd
 
+from claimflowengine.utils.logger import get_logger
+
+# Initialize Logging
+logger = get_logger("preprocessing")
+
 
 def engineer_features(df: pd.DataFrame, y: pd.Series | None = None) -> pd.DataFrame:
     """
@@ -40,15 +45,22 @@ def engineer_features(df: pd.DataFrame, y: pd.Series | None = None) -> pd.DataFr
         pd.DataFrame: DataFrame with new feature columns added.
     """
     df = df.copy()
+    logger.info("Engineer features...")
 
     # --- Time-based Features ---
-    df["submission_date"] = pd.to_datetime(df["submission_date"], errors="coerce")
-    df["service_date"] = pd.to_datetime(df["service_date"], errors="coerce")
-    df["claim_age_days"] = (df["submission_date"] - df["service_date"]).dt.days
-    df["claim_age_days"] = df["claim_age_days"].astype(float)
+    if "submission_date" in df.columns and "service_date" in df.columns:
+        df["submission_date"] = pd.to_datetime(df["submission_date"], errors="coerce")
+        df["service_date"] = pd.to_datetime(df["service_date"], errors="coerce")
+        df["claim_age_days"] = (df["submission_date"] - df["service_date"]).dt.days
+        df["claim_age_days"] = df["claim_age_days"].astype(float)
+    elif "claim_age_days" not in df.columns:
+        df["claim_age_days"] = 0.0  # Fallback default
 
     # --- Resubmission Flag ---
-    df["is_resubmission"] = df.get("resubmission", 0).astype(bool)
+    if "resubmission" in df.columns:
+        df["is_resubmission"] = df["resubmission"].astype(bool)
+    else:
+        df["is_resubmission"] = False
 
     # --- Follow-up Intensity Score ---
     if "followup_notes" in df.columns:
@@ -66,6 +78,10 @@ def engineer_features(df: pd.DataFrame, y: pd.Series | None = None) -> pd.DataFr
     else:
         df["contains_auth_term"] = False
 
+    # --- Ensure Dummy Label Exists ---
+    if "denied" not in df.columns:
+        df["denied"] = 0  # Dummy for inference mode
+
     # --- Domain-Informed Statistical Features (require label) ---
     if y is not None and len(df) == len(y):
         df["denied"] = y.values  # Temporarily merge target
@@ -81,14 +97,17 @@ def engineer_features(df: pd.DataFrame, y: pd.Series | None = None) -> pd.DataFr
         df = df.merge(provider_rate, how="left", on="provider_type")
 
         # resubmission_rate_by_payer
-        resub_rate = (
-            df.groupby("payer_id")["resubmission"]
-            .mean()
-            .rename("resubmission_rate_by_payer")
-        )
-        df = df.merge(resub_rate, how="left", on="payer_id")
+        # resub_rate = None
+        if "resubmission" in df.columns:
+            resub_rate = (
+                df.groupby("payer_id")["resubmission"]
+                .mean()
+                .rename("resubmission_rate_by_payer")
+            )
+            df = df.merge(resub_rate, how="left", on="payer_id")
+        else:
+            df["resubmission_rate_by_payer"] = 0.0
 
-        # df.drop(columns=["denied"], inplace=True, errors="ignore")
     else:
         df["payer_deny_rate"] = 0.5
         df["provider_deny_rate"] = 0.5

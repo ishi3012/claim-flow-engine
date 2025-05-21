@@ -19,12 +19,25 @@
     Author: ClaimFlowEngine Team
 """
 
-from fastapi import FastAPI
+import pandas as pd
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
 from app.schemas import ClaimInput, ClaimPredictionResponse
+from claimflowengine.inference.loader import load_model
+from claimflowengine.inference.predictor import predict_claims
+from claimflowengine.utils.git import get_model_version_tag
+from claimflowengine.utils.logger import get_logger
+
+MODEL_VERSION = get_model_version_tag()
 
 app: FastAPI = FastAPI(title="ClaimFlowEngine", version="0.1.0")
+
+# Initialize Logger
+logger = get_logger("inference")
+
+# Load model and transformers once on startup
+model, target_encoder, numeric_transformer = load_model()
 
 
 @app.get("/ping", response_class=JSONResponse)  # type: ignore[misc]
@@ -43,12 +56,29 @@ def predict_claim(input_claim: ClaimInput) -> ClaimPredictionResponse:
     """
     Replace this with actual model inference later.
     """
-    return ClaimPredictionResponse(
-        denial_probability=0.75,
-        top_denial_reasons=[
-            "missing authorization",
-            "invalid diagnosis",
-            "policy exclusion",
-        ],
-        model_version="v0.1-dummy",
-    )
+    try:
+        logger.info("Received claim for prediction")
+
+        # Convert Pydantic model to DataFrame
+        df_input = pd.DataFrame([input_claim.dict()])
+
+        # Run Prediction
+        results = predict_claims(
+            raw_data=df_input,
+            model=model,
+            target_encoder=target_encoder,
+            numeric_transformer=numeric_transformer,
+        )
+
+        result = results[0]
+
+        return ClaimPredictionResponse(
+            denial_probability=result["denial_probability"],
+            top_denial_reasons=result.get("top_3_denial_reasons", []),
+            model_version=MODEL_VERSION,
+            routing_cluster_id=None,
+            explainability_scores=None,
+        )
+    except Exception as e:
+        logger.exception("Prediction failed.")
+        raise HTTPException(status_code=500, detail=str(e))

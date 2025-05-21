@@ -14,7 +14,6 @@ Author: ClaimFlowEngine Team
 """
 
 import argparse
-import logging
 from collections import Counter
 from pathlib import Path
 from typing import Any, Dict, Tuple
@@ -30,15 +29,16 @@ from sklearn.metrics import accuracy_score, f1_score, recall_score, roc_auc_scor
 from sklearn.model_selection import StratifiedKFold
 from xgboost import XGBClassifier
 
-from claimflowengine.prediction.config import TARGET_COL
-
-Path("logs").mkdir(exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s — %(levelname)s — %(message)s",
-    handlers=[logging.FileHandler("logs/train.log", mode="a"), logging.StreamHandler()],
+from claimflowengine.configs.paths import (
+    NUMERICAL_TRANSFORMER_PATH,
+    PREDICTION_MODEL_PATH,
+    RAW_DATA_PATH,
+    TARGET_COL,
 )
-logger = logging.getLogger(__name__)
+from claimflowengine.utils.logger import get_logger
+
+# Initialize Logging
+logger = get_logger("training")
 
 
 def load_data(data_path: str) -> Tuple[pd.DataFrame, pd.Series]:
@@ -187,17 +187,17 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--data",
-        default="claimflowengine/data/processed_claims.csv",
+        default=RAW_DATA_PATH,
         help="Path to input data CSV",
     )
     parser.add_argument(
         "--transformer",
-        default="claimflowengine/models/transformer.joblib",
+        default=NUMERICAL_TRANSFORMER_PATH,
         help="Path to transformer.pkl",
     )
     parser.add_argument(
         "--model",
-        default="claimflowengine/models/denial_model.joblib",
+        default=PREDICTION_MODEL_PATH,
         help="Path to save model.pkl",
     )
     return parser.parse_args()

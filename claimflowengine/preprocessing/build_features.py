@@ -19,9 +19,7 @@ Features:
 Author: ClaimFlowEngine Team
 """
 
-import logging
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 from category_encoders import TargetEncoder
@@ -36,23 +34,11 @@ from claimflowengine.preprocessing.feature_engineering import (
     engineer_features,
 )
 from claimflowengine.preprocessing.text_cleaning import clean_text_fields
+from claimflowengine.utils.functions import convert_to_int
+from claimflowengine.utils.logger import get_logger
 
-# ------------------------- Logging -------------------------
-Path("logs").mkdir(exist_ok=True)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s — %(levelname)s — %(message)s",
-    handlers=[
-        logging.FileHandler("logs/preprocess.log", mode="a"),
-        logging.StreamHandler(),
-    ],
-)
-logger = logging.getLogger(__name__)
-
-
-# ------------------------- Util -------------------------
-def convert_to_int(x: Any) -> Any:
-    return x.astype(int) if hasattr(x, "astype") else x
+# Initialize Logging
+logger = get_logger("preprocessing")
 
 
 # ------------------------- Core Logic -------------------------
@@ -197,9 +183,9 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", default="claimflowengine/data/raw_claims.csv")
-    parser.add_argument("--output", default="claimflowengine/data/processed_claims.csv")
-    parser.add_argument("--transformer_dir", default="claimflowengine/models")
+    parser.add_argument("--input", default="data/raw_claims.csv")
+    parser.add_argument("--output", default="data/processed_claims.csv")
+    parser.add_argument("--transformer_dir", default="models")
 
     args = parser.parse_args()
     preprocess_and_save(args.input, args.output, args.transformer_dir)
