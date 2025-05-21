@@ -17,18 +17,17 @@ Functions:
 Author: ClaimFlowEngine Team
 """
 
-from typing import Any
-
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
+from claimflowengine.utils.functions import convert_to_int
+from claimflowengine.utils.logger import get_logger
 
-def convert_to_int(x: Any) -> Any:
-    """Safely convert input to int (for bool features)."""
-    return x.astype(int) if hasattr(x, "astype") else x
+# Initialize Logging
+logger = get_logger("preprocessing")
 
 
 def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
@@ -59,7 +58,7 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
 
     numeric_features = [f for f in numeric_features if f in df.columns]
     boolean_features = [f for f in boolean_features if f in df.columns]
-
+    logger.info("Creating preprocessing pipeline...")
     preprocessor = ColumnTransformer(
         transformers=[
             (
@@ -93,5 +92,4 @@ def get_transformer_pipeline(df: pd.DataFrame) -> ColumnTransformer:
         remainder="drop",
         verbose_feature_names_out=True,
     )
-
     return preprocessor
