@@ -20,7 +20,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from claimflowengine.configs.paths import INFERENCE_INPUT_PATH, INFERENCE_OUTPUT_PATH
+from claimflowengine.configs.paths import (
+    DENIAL_PREDICTION_OUTPUT_PATH,
+    INFERENCE_INPUT_PATH,
+)
 from claimflowengine.inference.loader import load_model
 from claimflowengine.inference.predictor import predict_claims
 from claimflowengine.utils.logger import get_logger
@@ -43,7 +46,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=str,
-        default=INFERENCE_OUTPUT_PATH,
+        default=DENIAL_PREDICTION_OUTPUT_PATH,
         help="Path to save predictions.",
     )
 

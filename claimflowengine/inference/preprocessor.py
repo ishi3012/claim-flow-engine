@@ -108,6 +108,7 @@ def preprocess_for_inference(
         "facility_code",
         "diagnosis_code",
         "procedure_code",
+        # "prior_authorization",
     ]
 
     categorical_cols = [col for col in categorical_cols if col in X.columns]
