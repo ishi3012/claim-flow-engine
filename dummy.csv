@@ -1,0 +1,11 @@
+claim_id,denial_reason,denial_cluster_id
+101,Missing prior authorization,-1
+102,Expired coverage,-1
+103,Duplicate claim,-1
+104,Missing prior authorization,-1
+105,Coding error,-1
+106,Invalid modifier,-1
+107,Benefit max reached,-1
+108,Late filing,-1
+109,Missing prior authorization,-1
+110,Expired coverage,-1
