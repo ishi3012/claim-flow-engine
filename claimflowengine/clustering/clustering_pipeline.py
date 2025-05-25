@@ -14,7 +14,8 @@ Intended Use:
 Author: ClaimFlowEngine Team (2025)
 """
 
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import pandas as pd
 
@@ -29,17 +30,18 @@ from claimflowengine.utils.logger import get_logger
 
 logger = get_logger("cluster")
 
+
 def cluster_claims(
-        raw_data: pd.DataFrame,
-        text_col: str = "denial_reason",
-        notes_col: Optional[str] = "followup_notes",
-        use_notes: bool = True,
-        id_col: str = "claim_id",
-        model_name: str =SENTENCE_TRANSFORMER_MODEL_NAME,
-        output_path: str = CLUSTERING_OUTPUT_PATH,
-        cluster_model_path: str = CLUSTER_MODEL_PATH,
-        reducer_model_path: str = REDUCER_MODEL_PATH
-    ) -> pd.DataFrame:
+    raw_data: pd.DataFrame,
+    text_col: str = "denial_reason",
+    notes_col: Optional[str] = "followup_notes",
+    use_notes: bool = True,
+    id_col: str = "claim_id",
+    model_name: str = SENTENCE_TRANSFORMER_MODEL_NAME,
+    output_path: Union[str, Path] = CLUSTERING_OUTPUT_PATH,
+    cluster_model_path: Union[str, Path] = CLUSTER_MODEL_PATH,
+    reducer_model_path: Union[str, Path] = REDUCER_MODEL_PATH,
+) -> pd.DataFrame:
     """
     Wrapper to run denial root cause clustering on a raw DataFrame.
 
@@ -58,5 +60,5 @@ def cluster_claims(
         model_name=model_name,
         output_path=output_path,
         cluster_model_path=cluster_model_path,
-        reducer_model_path = reducer_model_path
+        reducer_model_path=reducer_model_path,
     )

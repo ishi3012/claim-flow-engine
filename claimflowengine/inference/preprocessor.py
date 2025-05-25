@@ -28,9 +28,11 @@ Author: ClaimFlowEngine Team (2025)
 """
 
 import pandas as pd
+import yaml  # type: ignore[import-untyped]
 from category_encoders import TargetEncoder
 from sklearn.compose import ColumnTransformer
 
+from claimflowengine.configs.paths import FEATURE_CONFIG_PATH
 from claimflowengine.preprocessing.feature_engineering import (
     engineer_edi_features,
     engineer_features,
@@ -148,5 +150,7 @@ def preprocess_for_inference(
         [encoded_cats.reset_index(drop=True), transformed_df.reset_index(drop=True)],
         axis=1,
     )
-
+    with open(FEATURE_CONFIG_PATH, "r") as f:
+        config = yaml.safe_load(f)
+    final_df = final_df[config["features"]]
     return final_df

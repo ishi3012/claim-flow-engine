@@ -12,6 +12,7 @@ Features:
 
 Author: ClaimFlowEngine Team (2025)
 """
+
 from typing import Dict
 
 import numpy as np
@@ -23,13 +24,14 @@ from claimflowengine.utils.logger import get_logger
 # Initialize logger
 logger = get_logger("cluster")
 
+
 def generate_cluster_labels(
-        clustered_df: pd.DataFrame,
-        text_col: str="denial_reason",
-        cluster_col: str = "denial_cluster_id",
-        method: str = "mode",
-        top_n: int = 1
-    ) -> Dict[int, str]:
+    clustered_df: pd.DataFrame,
+    text_col: str = "denial_reason",
+    cluster_col: str = "denial_cluster_id",
+    method: str = "mode",
+    top_n: int = 1,
+) -> Dict[int, str]:
     """
     Generate interpretable labels for each cluster.
 
@@ -46,7 +48,7 @@ def generate_cluster_labels(
 
     labels = {}
 
-    if method== "mode":
+    if method == "mode":
         for cid, group in clustered_df.groupby(cluster_col):
             mode_text = group[text_col].mode(dropna=True)
             labels[cid] = mode_text.iloc[0] if not mode_text.empty else "Unknown"
@@ -61,10 +63,9 @@ def generate_cluster_labels(
             tfidf_mean = tfidf_matrix.mean(axis=0).A1
             feature_names = vectorizer.get_feature_names_out()
             valid_idx = np.argsort(tfidf_mean)[::-1]
-            top_terms = [
-                            feature_names[i] for i in valid_idx
-                                    if tfidf_mean[i] > 0
-                        ][:top_n]
+            top_terms = [feature_names[i] for i in valid_idx if tfidf_mean[i] > 0][
+                :top_n
+            ]
 
             labels[cid] = ", ".join(top_terms) if top_terms else "Unknown"
             logger.debug(f"Cluster {cid}: {labels[cid]}")
@@ -75,11 +76,11 @@ def generate_cluster_labels(
 
 
 def attach_cluster_labels(
-        df: pd.DataFrame,
-        label_map: Dict[int, str],
-        cluster_col: str = "denial_cluster_id",
-        label_col: str = "cluster_label"
-    ) -> pd.DataFrame:
+    df: pd.DataFrame,
+    label_map: Dict[int, str],
+    cluster_col: str = "denial_cluster_id",
+    label_col: str = "cluster_label",
+) -> pd.DataFrame:
     """
     Attach cluster label strings to the original DataFrame.
 
@@ -94,5 +95,3 @@ def attach_cluster_labels(
     """
     df[label_col] = df[cluster_col].map(label_map)
     return df
-
-

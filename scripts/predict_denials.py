@@ -19,14 +19,17 @@ import argparse
 from pathlib import Path
 
 import pandas as pd
+import yaml  # type: ignore[import-untyped]
 
 from claimflowengine.configs.paths import (
     DENIAL_PREDICTION_OUTPUT_PATH,
+    FEATURE_CONFIG_PATH,
     INFERENCE_INPUT_PATH,
 )
 from claimflowengine.inference.loader import load_model
 from claimflowengine.inference.predictor import predict_claims
 from claimflowengine.utils.logger import get_logger
+from claimflowengine.utils.postprocessing import standardize_prediction_columns
 
 # Initialize Logging
 logger = get_logger("inference")
@@ -77,6 +80,7 @@ def main() -> None:
 
     logger.info(f"Saving output to: {args.output}")
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+    df_output = standardize_prediction_columns(df_output)
     df_output.to_csv(args.output, index=False)
 
     logger.info("Inference completed successfully.")
@@ -84,3 +88,11 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+    df = pd.read_csv(DENIAL_PREDICTION_OUTPUT_PATH)
+    with open(FEATURE_CONFIG_PATH) as f:
+        config = yaml.safe_load(f)
+
+    # Check if the right columns made it into inference stage
+    used_cols = set(df.columns) & set(config["features"])
+    print("Used columns from feature_config.yaml:", used_cols)

@@ -89,3 +89,10 @@ annotated-types==0.7.0
 
 #Clustering model
 hdbscan
+
+# Visualization
+matplotlib
+seaborn
+
+
+types-PyYAML

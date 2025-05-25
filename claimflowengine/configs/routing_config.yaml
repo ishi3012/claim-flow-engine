@@ -1,0 +1,20 @@
+weights:
+  denial_penalty: 2.0
+  cluster_weights:
+    auth_required: 1.5
+    coding_error: 1.2
+    expired_coverage: 1.0
+    duplicate_claim: 0.8
+  slow_payers:
+    P001: 1.5
+    P002: 1.2
+  complex_cpt:
+    "99285": 2.0
+    "99284": 1.8
+  claim_age_weight: 0.02
+  default_score: 1.0
+
+team_rules:
+  TeamA: ["auth_required", "expired_coverage"]
+  TeamB: ["coding_error"]
+  TeamC: ["duplicate_claim"]
