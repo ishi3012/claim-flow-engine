@@ -39,5 +39,3 @@ df_labeled.to_csv(CLUSTERING_CLAIMS_LABELED_PATH, index=False)
 
 print(f"Labels saved to {CLUSTER_LABELS_JSON_PATH}")
 print(f"Labeled claims saved to {CLUSTERING_CLAIMS_LABELED_PATH}")
-
-

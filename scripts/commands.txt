@@ -1,0 +1,15 @@
+python -m claimflowengine.preprocessing.build_features  
+
+python -m claimflowengine.prediction.train_denial_model
+
+python scripts/predict_denials.py 
+
+python scripts/cluster_denials.py
+python scripts/plot_umap_clusters.py
+
+python scripts/combine_predictions_and_clusters.py
+
+python scripts/run_routing_policy.py
+
+uvicorn app.main:app --reload
+curl -X POST http://localhost:8000/api/fullroute -H "accept: application/json" -F "file=@data/raw_claims.csv"

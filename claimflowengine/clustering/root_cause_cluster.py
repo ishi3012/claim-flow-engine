@@ -32,14 +32,15 @@ Outputs:
 
 Author: ClaimFlowEngine Team (2025)
 """
-from typing import List, Optional
+
+from pathlib import Path
+from typing import List, Optional, Union
 
 import joblib
 import numpy as np
 import pandas as pd
 from hdbscan import HDBSCAN
 from sentence_transformers import SentenceTransformer
-from sklearn.preprocessing import StandardScaler
 from umap import UMAP
 
 from claimflowengine.configs.paths import (
@@ -55,210 +56,125 @@ from claimflowengine.utils.logger import get_logger
 
 logger = get_logger("cluster")
 
+
 def embed_denial_reasons(
-        texts: List[str],
-        model_name: str = SENTENCE_TRANSFORMER_MODEL_NAME
-                         ) -> np.ndarray:
-    """
-    Embed denial_reason texts using SentenceTransformer model.
-    """
-
+    texts: List[str], model_name: str = SENTENCE_TRANSFORMER_MODEL_NAME
+) -> np.ndarray:
     logger.info(f"Loading SentenceTransformer model: {model_name}...")
-
     model = SentenceTransformer(model_name)
     logger.info("Encoding denial reasons into embeddings.")
-    embeddings = model.encode(texts, show_progress_bar=True)
-    logger.info(f"Encoded denial reasons into embeddings = {embeddings.shape}.")
-    return embeddings
+    return model.encode(texts, show_progress_bar=True)
 
-def prepare_feature_matrix(
-        text_embeddings: np.ndarray,
-        structured_df: Optional[pd.DataFrame] = None
-) -> np.ndarray:
-    """
-    Concentrate text embeddings with optional structured features.
-    """
-
-    if structured_df is not None and not structured_df.empty:
-        logger.info("Standardizing structured features.")
-        scaler = StandardScaler()
-        structured_scaled = scaler.fit_transform(structured_df)
-        combined = np.hstack((text_embeddings, structured_scaled))
-        logger.info(f"Combined feature matrix shape:{combined.shape}")
-        return combined
-    else:
-        return text_embeddings
-
-# def reduce_dimensions(
-#             data: np.ndarray,
-#             n_components: int = 5,
-#             random_state: int = 42
-#         ) -> tuple[np.ndarray, UMAP]:
-#     """
-#     Reduces dimensionality of embeddings using UMAP.
-#     """
-#     logger.info(f"Reducing dimensions to {n_components} using UMAP")
-
-#     if data.shape[0] < 3:
-#         logger.warning("Too few rows to perform clustering."+
-#                        " Returning input with cluster_id = -1")
-#         # return df.assign(denial_cluster_id=-1)
-#         return data, None
-
-#     effective_components = min(n_components, data.shape[0] - 1)
-#     logger.info(f"Reducing dimensions to {effective_components} using UMAP")
-#     reducer = UMAP(n_components=effective_components, random_state=random_state)
-
-#     reduced = reducer.fit_transform(data)
-#     return reduced, reducer
 
 def reduce_dimensions(
-    data: np.ndarray,
-    n_components: int = 5,
-    random_state: int = 42
+    data: np.ndarray, n_components: int = 5, random_state: int = 42
 ) -> tuple[np.ndarray, Optional[UMAP]]:
-    """
-    Reduces dimensionality of embeddings using UMAP.
-    Handles small sample edge case and avoids scipy.linalg.eigh error.
-    """
     if data.shape[0] < 3:
-        logger.warning("Too few rows to perform clustering."+
-        " Returning input unchanged with no reducer.")
+        logger.warning("Too few rows to perform clustering. Returning input unchanged.")
         return data, None
 
     effective_components = min(n_components, data.shape[0] - 1)
     logger.info(f"Reducing dimensions to {effective_components} using UMAP")
-
     reducer = UMAP(
         n_components=effective_components,
         random_state=random_state,
         metric="cosine",
-        densmap=False
+        densmap=False,
     )
     reduced = reducer.fit_transform(data)
     return reduced, reducer
 
 
 def cluster_embeddings(
-        data: np.ndarray,
-        min_cluster_size: int = 30
+    data: np.ndarray, min_cluster_size: int = 30
 ) -> tuple[np.ndarray, HDBSCAN]:
-    """
-    Applies HDBSCAN clustering on the rediced embeddings.
-    """
-
     logger.info("Clustering data with HDBSCAN")
-
     n_samples = data.shape[0]
     min_cluster_size = min(min_cluster_size, max(2, n_samples // 3))
-
     clusterer = HDBSCAN(min_cluster_size=min_cluster_size, prediction_data=True)
     labels = clusterer.fit_predict(data)
     logger.info(f"Detected {len(set(labels)) - (1 if -1 in labels else 0)} clusters.")
-
     return labels, clusterer
 
+
 def attach_clusters(
-        df: pd.DataFrame,
-        labels: np.ndarray,
-        output_path: str = "data/processed/clustered_claims.csv"
-        ) -> pd.DataFrame:
-    """
-    Adds cluster labels to original DataFrame and writes to CSV.
-    """
+    df: pd.DataFrame,
+    labels: np.ndarray,
+    output_path: Union[str, Path] = CLUSTERING_OUTPUT_PATH,
+) -> pd.DataFrame:
     df_with_clusters = df.copy()
-    df_with_clusters["denial_cluster_id"]  = labels
+    df_with_clusters["denial_cluster_id"] = labels
     df_with_clusters.to_csv(output_path, index=False)
-    logger.info(f"Saved clustered claims to : {output_path}")
+    logger.info(f"Saved clustered claims to: {output_path}")
     return df_with_clusters
 
+
 def save_artifacts(
-        clusterer: HDBSCAN,
-        reducer:UMAP,
-        cluster_model_path: str = CLUSTER_MODEL_PATH,
-        reducer_model_path: str = REDUCER_MODEL_PATH,
-        ) -> None:
-    """
-    Persists clustering artifactes for reuse in inference and routing.
-    """
-    joblib.dump(clusterer, f"{cluster_model_path}")
-    joblib.dump(reducer, f"{reducer_model_path}")
-    logger.info(f"Saved clusterer to {cluster_model_path}"+
-                " and reducer to {reducer_model_path}")
+    clusterer: HDBSCAN,
+    reducer: UMAP,
+    cluster_model_path: Union[str, Path] = CLUSTER_MODEL_PATH,
+    reducer_model_path: Union[str, Path] = REDUCER_MODEL_PATH,
+) -> None:
+    joblib.dump(clusterer, cluster_model_path)
+    joblib.dump(reducer, reducer_model_path)
+    logger.info(
+        f"Saved clusterer to {cluster_model_path} and reducer to {reducer_model_path}"
+    )
 
 
 def run_clustering_pipeline(
-        df: pd.DataFrame,
-        text_col: str = "denial_reason",
-        notes_col: Optional[str] = "followup_notes",
-        use_notes: bool = True,
-        id_col: str = "claim_id",
-        model_name: str =SENTENCE_TRANSFORMER_MODEL_NAME,
-        output_path: str = CLUSTERING_OUTPUT_PATH,
-        cluster_model_path: str = CLUSTER_MODEL_PATH,
-        reducer_model_path: str = REDUCER_MODEL_PATH
-    ) -> pd.DataFrame:
-
-    """
-    End to end clustering pipeline callable
-    from scipts and notesbooks.
-    """
-    logger.info("Starting rootcause clustering pipeline.")
+    df: pd.DataFrame,
+    text_col: str = "denial_reason",
+    notes_col: Optional[str] = "followup_notes",
+    use_notes: bool = True,
+    id_col: str = "claim_id",
+    model_name: str = SENTENCE_TRANSFORMER_MODEL_NAME,
+    output_path: Union[str, Path] = CLUSTERING_OUTPUT_PATH,
+    cluster_model_path: Union[str, Path] = CLUSTER_MODEL_PATH,
+    reducer_model_path: Union[str, Path] = REDUCER_MODEL_PATH,
+) -> pd.DataFrame:
+    logger.info("Starting root cause clustering pipeline.")
 
     if use_notes and notes_col in df.columns:
-        logger.info(f"Concatenating {text_col} and"+
-                    " {notes_col} for richer text embedding.")
-        texts = (
-            df[text_col].fillna("") + " " + df[notes_col].fillna("")
-            ).tolist()
+        logger.info(
+            "Concatenating denial_reason and followup_notes for richer embedding."
+        )
+        texts = (df[text_col].fillna("") + " " + df[notes_col].fillna("")).tolist()
     else:
-        logger.info(f"Using only {text_col} for text embedding.")
+        logger.info("Using only denial_reason for embedding.")
         texts = df[text_col].fillna("").tolist()
 
     text_embeddings = embed_denial_reasons(texts, model_name)
 
-    # Load transformers from disk.
     _, target_encoder, numeric_transformer = load_model()
-
-    logger.info("Preprocessing structured features"+
-                " using inference pipeline")
+    logger.info("Preprocessing structured features.")
     structured_encoded = preprocess_for_inference(
-        raw_input = df,
+        raw_input=df,
         target_encoder=target_encoder,
-        numeric_transformer=numeric_transformer
+        numeric_transformer=numeric_transformer,
     )
 
-    # Combine structured + text embeddings
     feature_matrix = np.hstack((text_embeddings, structured_encoded))
-
-    #Dimensionality reduction + clustering
     reduced, reducer = reduce_dimensions(feature_matrix)
+
+    # Attach UMAP 2D projection for plotting
+    if reduced.shape[1] >= 2:
+        df["umap_x"] = reduced[:, 0]
+        df["umap_y"] = reduced[:, 1]
+
     labels, clusterer = cluster_embeddings(reduced)
 
-    # Final output
-    df_text_col = [text_col] if text_col in df else []
-    clustered_df = attach_clusters(
-        df[
-            [id_col]+ df_text_col
-        ],
-        labels,
-        output_path
-    )
+    df_text_cols = [text_col]
+    if use_notes and notes_col in df.columns and notes_col is not None:
+        df_text_cols.append(notes_col)
+
+    output_cols = [id_col] + df_text_cols + ["umap_x", "umap_y"]
+    clustered_df = attach_clusters(df[output_cols], labels, output_path)
     save_artifacts(clusterer, reducer, cluster_model_path, reducer_model_path)
 
     return clustered_df
 
+
 if __name__ == "__main__":
     df = pd.read_csv(INFERENCE_INPUT_PATH)
-
-    clustered_df = run_clustering_pipeline(
-        df,
-        text_col="denial_reason",
-        notes_col="followup_notes",
-        use_notes=True,
-        id_col="claim_id",
-        model_name =SENTENCE_TRANSFORMER_MODEL_NAME,
-        cluster_model_path = CLUSTER_MODEL_PATH,
-        reducer_model_path = REDUCER_MODEL_PATH,
-        output_path=CLUSTERING_OUTPUT_PATH
-    )
+    run_clustering_pipeline(df)

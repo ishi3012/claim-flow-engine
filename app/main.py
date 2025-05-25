@@ -23,6 +23,7 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
+from app.router.route_router import router as route_router
 from app.schemas import ClaimInput, ClaimPredictionResponse
 from claimflowengine.inference.loader import load_model
 from claimflowengine.inference.predictor import predict_claims
@@ -32,6 +33,7 @@ from claimflowengine.utils.logger import get_logger
 MODEL_VERSION = get_model_version_tag()
 
 app: FastAPI = FastAPI(title="ClaimFlowEngine", version="0.1.0")
+app.include_router(route_router, prefix="/api")
 
 # Initialize Logger
 logger = get_logger("inference")
