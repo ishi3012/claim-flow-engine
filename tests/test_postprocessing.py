@@ -18,11 +18,13 @@ def test_single_denied_column_prediction():
 
 
 def test_two_denied_columns():
-    df = pd.DataFrame({
-        "denied": [0, 1, 0],
-        "denied.1": [True, False, False],
-        "denial_probability": [0.9, 0.2, 0.3]
-    })
+    df = pd.DataFrame(
+        {
+            "denied": [0, 1, 0],
+            "denied.1": [True, False, False],
+            "denial_probability": [0.9, 0.2, 0.3],
+        }
+    )
     df.columns = ["denied", "denied", "denial_probability"]  # simulate duplicate
     df_out = standardize_prediction_columns(df)
     assert "denial_label" in df_out.columns
@@ -31,9 +33,6 @@ def test_two_denied_columns():
 
 
 def test_preserves_probability():
-    df = pd.DataFrame({
-        "denied": [0, 1],
-        "denial_probability": [0.7, 0.9]
-    })
+    df = pd.DataFrame({"denied": [0, 1], "denial_probability": [0.7, 0.9]})
     df_out = standardize_prediction_columns(df)
     assert "denial_probability" in df_out.columns

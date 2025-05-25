@@ -10,6 +10,7 @@ Features:
 
 Author: ClaimFlowEngine Team
 """
+
 from io import BytesIO
 from typing import Any, Dict, List, cast
 
@@ -35,7 +36,7 @@ router: APIRouter = APIRouter()
 policy_engine = PolicyEngine()
 
 
-@router.post("/route", response_model=List[Dict[str, Any]]) # type: ignore[misc]
+@router.post("/route", response_model=List[Dict[str, Any]])  # type: ignore[misc]
 async def route_claims(file: UploadFile = File(...)) -> List[Dict[str, Any]]:
     """
     Accepts a CSV file with claims and returns routed priorities.
@@ -50,7 +51,7 @@ async def route_claims(file: UploadFile = File(...)) -> List[Dict[str, Any]]:
         raise HTTPException(status_code=500, detail=f"Routing failed: {e}")
 
 
-@router.post("/fullroute", response_model=List[Dict[str, Any]]) # type: ignore[misc]
+@router.post("/fullroute", response_model=List[Dict[str, Any]])  # type: ignore[misc]
 async def full_route_claims(file: UploadFile = File(...)) -> List[Dict[str, Any]]:
     """
     Accepts a CSV file, performs:
@@ -77,10 +78,8 @@ async def full_route_claims(file: UploadFile = File(...)) -> List[Dict[str, Any]
         )
 
         df_pred = pd.concat(
-            [df_raw.reset_index(drop=True), 
-             pd.DataFrame(pred_results)], 
-             axis=1
-             )
+            [df_raw.reset_index(drop=True), pd.DataFrame(pred_results)], axis=1
+        )
         df_pred = standardize_prediction_columns(df_pred)
 
         # Step 2: Root cause clustering

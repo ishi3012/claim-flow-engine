@@ -1,15 +1,21 @@
 import pandas as pd
 from claimflowengine.clustering.cluster_summary import generate_cluster_labels
 
+
 def test_generate_cluster_labels_mode():
-    df = pd.DataFrame({
-        "claim_id": [1, 2, 3, 4, 5],
-        "denial_reason": [
-            "Missing Auth", "Missing Auth", "Invalid Code",
-            "Invalid Code", "Service Not Covered"
-        ],
-        "denial_cluster_id": [0, 0, 1, 1, 2]
-    })
+    df = pd.DataFrame(
+        {
+            "claim_id": [1, 2, 3, 4, 5],
+            "denial_reason": [
+                "Missing Auth",
+                "Missing Auth",
+                "Invalid Code",
+                "Invalid Code",
+                "Service Not Covered",
+            ],
+            "denial_cluster_id": [0, 0, 1, 1, 2],
+        }
+    )
 
     label_map = generate_cluster_labels(df, method="mode")
 

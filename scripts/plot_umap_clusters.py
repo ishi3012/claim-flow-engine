@@ -40,18 +40,15 @@ def plot_umap_clusters(input_csv: str, output_path: str):
     print(f"Saved UMAP cluster plot to: {output_path}")
     plt.close()
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--input",
-        default=CLUSTERING_OUTPUT_PATH,
-        help="CSV with UMAP results"
-        )
+        "--input", default=CLUSTERING_OUTPUT_PATH, help="CSV with UMAP results"
+    )
     parser.add_argument(
-        "--output",
-        default="data/umap_cluster_plot.png",
-        help="Output image path"
-        )
+        "--output", default="data/umap_cluster_plot.png", help="Output image path"
+    )
     args = parser.parse_args()
 
     plot_umap_clusters(args.input, args.output)

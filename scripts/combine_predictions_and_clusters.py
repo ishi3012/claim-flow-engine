@@ -28,25 +28,20 @@ def main(pred_path: str, cluster_path: str, output_path: str) -> None:
     df.to_csv(output_path, index=False)
     print(f"Merged file written to: {output_path}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Merge prediction and clustering results."
-        )
+    )
     parser.add_argument(
-        "--pred",
-        default=DENIAL_PREDICTION_OUTPUT_PATH,
-        help="Path to predictions CSV"
-        )
+        "--pred", default=DENIAL_PREDICTION_OUTPUT_PATH, help="Path to predictions CSV"
+    )
     parser.add_argument(
-        "--cluster",
-        default=CLUSTERING_OUTPUT_PATH,
-        help="Path to clustering CSV"
-        )
+        "--cluster", default=CLUSTERING_OUTPUT_PATH, help="Path to clustering CSV"
+    )
     parser.add_argument(
-        "--output",
-        default=MERGED_ROUTING_PATH,
-        help="Path to save merged routing file"
-        )
+        "--output", default=MERGED_ROUTING_PATH, help="Path to save merged routing file"
+    )
     args = parser.parse_args()
 
     main(args.pred, args.cluster, args.output)

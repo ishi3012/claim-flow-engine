@@ -13,6 +13,7 @@ Example usage:
 
 Author: ClaimFlowEngine Project (2025)
 """
+
 import pandas as pd
 
 
@@ -32,7 +33,7 @@ def standardize_prediction_columns(df: pd.DataFrame) -> pd.DataFrame:
     """
 
     df = df.copy()
-    denied_cols = [col for col in df.columns if col.lower()=="denied"]
+    denied_cols = [col for col in df.columns if col.lower() == "denied"]
 
     # Case: two denied columns (e.g. label + prediction)
     if len(denied_cols) == 2:
@@ -60,7 +61,7 @@ def standardize_prediction_columns(df: pd.DataFrame) -> pd.DataFrame:
     elif len(denied_cols) == 1:
         col = denied_cols[0]
         if df[col].dtype == bool:
-            df.rename(columns={col:"denial_prediction"}, inplace=True)
+            df.rename(columns={col: "denial_prediction"}, inplace=True)
         else:
             df.rename(columns={col: "denial_label"}, inplace=True)
     return df

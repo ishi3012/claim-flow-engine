@@ -32,20 +32,19 @@ def main(input_path: str, output_path: str):
     routed_df.to_csv(output_path, index=False)
     print(f"Routed claims saved to: {output_path}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Run routing policy engine on merged claims."
-        )
+    )
     parser.add_argument(
-        "--input",
-        default=MERGED_ROUTING_PATH,
-        help="Path to merged input CSV"
-        )
+        "--input", default=MERGED_ROUTING_PATH, help="Path to merged input CSV"
+    )
     parser.add_argument(
         "--output",
         default=CLAIMS_ROUTING_OUTPUT_PATH,
-        help="Path to save routed output"
-        )
+        help="Path to save routed output",
+    )
     args = parser.parse_args()
 
     main(args.input, args.output)
