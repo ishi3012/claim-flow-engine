@@ -9,6 +9,9 @@ Features:
 Author: ClaimFlowEngine (2025)
 """
 
+from pathlib import Path
+from typing import Union
+
 import pandas as pd
 
 from claimflowengine.configs.paths import (
@@ -53,8 +56,8 @@ def merge_predictions_and_clusters(
 
 
 def merge_predictions_and_clusters_from_files(
-    pred_path: str = DENIAL_PREDICTION_OUTPUT_PATH,
-    cluster_path: str = CLUSTERING_CLAIMS_LABELED_PATH,
+    pred_path: Union[str, Path] = DENIAL_PREDICTION_OUTPUT_PATH,
+    cluster_path: Union[str, Path] = CLUSTERING_CLAIMS_LABELED_PATH,
 ) -> pd.DataFrame:
     """
     Loads predictions and clusters from CSVs and merges them.

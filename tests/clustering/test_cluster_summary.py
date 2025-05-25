@@ -3,7 +3,7 @@ import pandas as pd
 from claimflowengine.clustering.cluster_summary import generate_cluster_labels
 
 
-def test_generate_cluster_labels_mode():
+def test_generate_cluster_labels_mode() -> None:
     df = pd.DataFrame(
         {
             "claim_id": [1, 2, 3, 4, 5],

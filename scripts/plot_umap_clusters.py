@@ -8,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from claimflowengine.configs.paths import CLUSTERING_OUTPUT_PATH
 
 
-def plot_umap_clusters(input_csv: str, output_path: str):
+def plot_umap_clusters(input_csv: str, output_path: str) -> None:
     df = pd.read_csv(input_csv)
 
     if "umap_x" not in df.columns or "umap_y" not in df.columns:

@@ -3,7 +3,7 @@ import pandas as pd
 from claimflowengine.routing.policy import score_claim
 
 
-def test_score_claim_basic():
+def test_score_claim_basic() -> None:
     claim = pd.Series(
         {
             "claim_id": 123,

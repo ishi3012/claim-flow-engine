@@ -3,7 +3,7 @@ import pandas as pd
 from claimflowengine.routing.policy import PolicyEngine
 
 
-def mock_input_df():
+def mock_input_df() -> pd.DataFrame:
     return pd.DataFrame(
         {
             "denial_prediction": [True, False, True],
@@ -20,7 +20,7 @@ def mock_input_df():
     )
 
 
-def test_policy_engine_outputs_expected_columns():
+def test_policy_engine_outputs_expected_columns() -> None:
     df = mock_input_df()
     engine = PolicyEngine()
     result_df = engine.route_all(df)

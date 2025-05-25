@@ -23,7 +23,7 @@ from claimflowengine.configs.paths import (
 from claimflowengine.routing.policy import PolicyEngine
 
 
-def main(input_path: str, output_path: str):
+def main(input_path: str, output_path: str) -> None:
     df = pd.read_csv(input_path)
 
     engine = PolicyEngine()

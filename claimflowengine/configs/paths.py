@@ -14,6 +14,8 @@ DENIAL_PREDICTION_OUTPUT_PATH = Path("data/denial_prediction_output.csv")
 CLUSTERING_OUTPUT_PATH = Path("data/clustering_output.csv")
 CLUSTERING_CLAIMS_LABELED_PATH = Path("data/clustered_claims_labeled.csv")
 CLUSTER_LABELS_JSON_PATH = Path("data/cluster_labels.json")
+MERGED_ROUTING_PATH = Path("data/merged_denial-prediction_clustering.csv")
+CLAIMS_ROUTING_OUTPUT_PATH = Path("data/routed_claims.csv")
 # Target column
 TARGET_COL = "denied"
 
