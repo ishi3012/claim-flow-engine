@@ -3,7 +3,7 @@ black==24.3.0
 ruff==0.4.1
 
 # Static Type Checker
-mypy==1.10.0
+mypy==1.15.0
 pandas-stubs==2.2.1.240316
 types-PyYAML==6.0.12.20250516
 

@@ -35,7 +35,7 @@ Jinja2==3.1.6
 # Dev tooling
 black==24.3.0
 ruff==0.4.1
-mypy==1.10.0
+mypy==1.15.0
 pytest==7.4.3
 pre-commit==3.5.0
 
