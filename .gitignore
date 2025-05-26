@@ -41,6 +41,12 @@ Thumbs.db
 
 # Model artifacts
 models/
+!models/denial_prediction_model.joblib
+!models/target_encoder.joblib
+!models/numeric_transformer.joblib
+!models/cluster_model.joblib
+!models/reducer_model.joblib
+
 checkpoints/
 *.pkl
 *.joblib
