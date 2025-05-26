@@ -40,10 +40,10 @@ Author: ClaimFlowEngine Project (2025)
 """
 
 from pathlib import Path
-from typing import Any, Dict, Tuple, Union, cast
+from typing import Any, Dict, Optional, Tuple, Union, cast
 
 import pandas as pd
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from claimflowengine.configs.paths import ROUTING_CONFIG_PATH
 from claimflowengine.utils.logger import get_logger
@@ -88,10 +88,14 @@ def load_routing_config(path: Union[str, Path] = ROUTING_CONFIG_PATH) -> dict[An
         return {}
 
 
-def score_claim(claim: pd.Series, config: Dict[str, Any]) -> Tuple[float, list[str]]:
+def score_claim(
+    claim: Optional[Any], config: Dict[str, Any]
+) -> Tuple[float, list[str]]:
     score = config.get("default_score", 1.0)
     notes = []
     logger.info("Calculate score and write notes...")
+    if claim is None:
+        return 0.0, []
     if claim.get("denial_prediction", 0):
         score += config.get("denial_penalty", 0)
         notes.append(f"Denied: +{config.get('denial_penalty', 0): .1f}")
@@ -129,9 +133,15 @@ def score_claim(claim: pd.Series, config: Dict[str, Any]) -> Tuple[float, list[s
     return score, notes
 
 
-def assign_queue(claim: pd.Series, config: Dict[str, list[str]]) -> str:
+def assign_queue(claim: Optional[Any], config: Dict[str, list[str]]) -> str:
     logger.info("Assign team...")
-    cluster_id = str(claim.get("denial_cluster_id", "unknown"))
+    if claim is None:
+        return "default_queue"
+    cluster_id = (
+        str(claim.get("denial_cluster_id", "unknown"))
+        if claim is not None
+        else "unknown"
+    )
     for team, clusters in config.items():
         if cluster_id in clusters:
             return team

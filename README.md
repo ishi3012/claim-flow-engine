@@ -4,6 +4,8 @@
 ![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Made with FastAPI](https://img.shields.io/badge/Made%20with-FastAPI-009688.svg)
+![CI](https://github.com/ishi3012/claim-flow-engine/actions/workflows/ci.yml/badge.svg)
+
 
 > A modular microservice for healthcare claim denial prediction, root cause clustering, and intelligent claim routing.
 

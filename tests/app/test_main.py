@@ -22,12 +22,13 @@ def test_predict_endpoint_mock() -> None:
         "total_charge_amount": 150.0,
         "payer_id": "PAYER001",
         "plan_type": "commercial",
+        "place_of_service": "11",
+        "contains_auth_term": True,
+        "note_length": 80,
         "prior_authorization": 1,
         "accident_indicator": 0,
         "prior_denials_flag": 0,
         "is_resubmission": 0,
-        "contains_auth_term": True,
-        "note_length": 80,
     }
 
     response = client.post("/predict", json=payload)

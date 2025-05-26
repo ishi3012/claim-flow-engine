@@ -1,11 +1,11 @@
 claim_id,denial_reason,followup_notes,umap_x,umap_y,denial_cluster_id
-101,Missing prior authorization,Need auth letter,8.605424,5.694822,-1
-102,Expired coverage,Plan inactive,7.8151026,5.8935394,-1
-103,Duplicate claim,Already submitted,8.846121,6.079061,-1
-104,Missing prior authorization,Submit form again,7.8191433,5.6303644,-1
-105,Coding error,Invalid CPT code,8.027646,6.5605426,-1
-106,Invalid modifier,Modifier required,8.51133,5.7190123,-1
-107,Benefit max reached,Exceeds plan limit,7.966445,6.1801853,-1
-108,Late filing,File within 90 days,9.215366,5.959659,-1
-109,Missing prior authorization,Request review,8.103083,6.215041,-1
-110,Expired coverage,Re-enrollment needed,8.327233,5.029994,-1
+101,Missing prior authorization,Need auth letter,-0.41463524,12.0184145,-1
+102,Expired coverage,Plan inactive,-0.5484605,11.294239,-1
+103,Duplicate claim,Already submitted,-1.292878,12.050231,-1
+104,Missing prior authorization,Submit form again,-0.82722336,11.227284,-1
+105,Coding error,Invalid CPT code,-1.4734743,11.435908,-1
+106,Invalid modifier,Modifier required,-1.0431663,12.315654,-1
+107,Benefit max reached,Exceeds plan limit,-0.9898316,11.13304,-1
+108,Late filing,File within 90 days,-1.330703,12.583835,-1
+109,Missing prior authorization,Request review,-1.2066948,11.962551,-1
+110,Expired coverage,Re-enrollment needed,-0.3480841,11.903542,-1

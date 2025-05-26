@@ -1,4 +1,5 @@
 import pandas as pd
+from pandas import Index
 
 from claimflowengine.utils.postprocessing import standardize_prediction_columns
 
@@ -25,7 +26,7 @@ def test_two_denied_columns() -> None:
             "denial_probability": [0.9, 0.2, 0.3],
         }
     )
-    df.columns = ["denied", "denied", "denial_probability"]  # simulate duplicate
+    df.columns = Index(["denied", "denied", "denial_probability"])  # simulate duplicate
     df_out = standardize_prediction_columns(df)
     assert "denial_label" in df_out.columns
     assert "denial_prediction" in df_out.columns

@@ -41,7 +41,7 @@ def test_composite_score() -> None:
 
 @pytest.mark.parametrize(
     "model_cls", [LogisticRegression, XGBClassifier, LGBMClassifier]
-)  # type: ignore
+)  # type: ignore[misc]
 def test_evaluate_model_with_synthetic_data(model_cls: Any) -> None:
     df = get_mock_claims_df()
     y = df["denied"]

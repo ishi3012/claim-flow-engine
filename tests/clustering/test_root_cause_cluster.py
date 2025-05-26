@@ -1,3 +1,4 @@
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -10,13 +11,13 @@ from tests.clustering.mock_cluster import mock_cluster_input
 
 
 @pytest.fixture  # type: ignore[misc]
-def mocked_embeddings() -> np.ndarray:
+def mocked_embeddings() -> np.ndarray[Any, Any]:
     return np.random.rand(mock_cluster_input.shape[0], 384)
 
 
 @patch("claimflowengine.clustering.root_cause_cluster.embed_denial_reasons")
 def test_run_clustering_pipeline(
-    mock_embed_fn: MagicMock, mocked_embeddings: np.ndarray
+    mock_embed_fn: MagicMock, mocked_embeddings: np.ndarray[Any, Any]
 ) -> None:
     mock_embed_fn.return_value = mocked_embeddings
 

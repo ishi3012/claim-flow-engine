@@ -19,7 +19,7 @@ import argparse
 from pathlib import Path
 
 import pandas as pd
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from claimflowengine.configs.paths import (
     DENIAL_PREDICTION_OUTPUT_PATH,

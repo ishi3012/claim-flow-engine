@@ -28,7 +28,7 @@ Author: ClaimFlowEngine Team (2025)
 """
 
 import pandas as pd
-import yaml  # type: ignore[import-untyped]
+import yaml
 from category_encoders import TargetEncoder
 from sklearn.compose import ColumnTransformer
 

@@ -13,7 +13,7 @@ Features:
 Author: ClaimFlowEngine Team (2025)
 """
 
-from typing import Dict
+from typing import Dict, cast
 
 import numpy as np
 import pandas as pd
@@ -72,7 +72,7 @@ def generate_cluster_labels(
     else:
         logger.error("Invalid method. Choose 'mode' or 'tfidf'.")
         raise ValueError("Invalid method. Choose 'mode' or 'tfidf'.")
-    return labels
+    return cast(dict[int, str], labels)
 
 
 def attach_cluster_labels(

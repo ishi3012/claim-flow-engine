@@ -15,6 +15,7 @@ Author: ClaimFlowEngine Project (2025)
 """
 
 import pandas as pd
+from pandas import Index
 
 
 def standardize_prediction_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -46,17 +47,17 @@ def standardize_prediction_columns(df: pd.DataFrame) -> pd.DataFrame:
 
         new_cols = list(df.columns)
 
-        if dtype1 in [int, float] and dtype2 == bool:
+        if dtype1 in [int, float] and dtype2 is bool:
             new_cols[denied_idx[0]] = "denial_label"
             new_cols[denied_idx[1]] = "denial_prediction"
-        elif dtype2 in [int, float] and dtype1 == bool:
+        elif dtype2 in [int, float] and dtype1 is bool:
             new_cols[denied_idx[0]] = "denial_prediction"
             new_cols[denied_idx[1]] = "denial_label"
         else:
             new_cols[denied_idx[0]] = "denial_label"
             new_cols[denied_idx[1]] = "denial_prediction"
 
-        df.columns = new_cols
+        df.columns = Index(new_cols)
 
     elif len(denied_cols) == 1:
         col = denied_cols[0]
