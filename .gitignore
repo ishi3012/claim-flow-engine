@@ -39,21 +39,24 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Model artifacts
-models/
+# Model artifacts (ignore all except whitelisted)
+models/*
+!models/.gitkeep
 !models/denial_prediction_model.joblib
-!models/target_encoder.joblib
 !models/numeric_transformer.joblib
+!models/target_encoder.joblib
 !models/cluster_model.joblib
 !models/reducer_model.joblib
 
 checkpoints/
 *.pkl
-*.joblib
 
 # Data
 data/
 
+# Coverage
 htmlcov/
 .coverage
+
+# Type checking
 .mypy_cache/
