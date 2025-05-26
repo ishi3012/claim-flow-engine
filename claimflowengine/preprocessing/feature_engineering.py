@@ -25,6 +25,8 @@ Functions:
 Author: ClaimFlowEngine Team
 """
 
+from typing import Any, Optional
+
 import pandas as pd
 
 from claimflowengine.utils.logger import get_logger
@@ -33,7 +35,7 @@ from claimflowengine.utils.logger import get_logger
 logger = get_logger("preprocessing")
 
 
-def engineer_features(df: pd.DataFrame, y: pd.Series | None = None) -> pd.DataFrame:
+def engineer_features(df: pd.DataFrame, y: Optional[Any] = None) -> pd.DataFrame:
     """
     Computes new features for denial modeling and clustering.
 

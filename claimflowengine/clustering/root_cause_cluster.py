@@ -34,7 +34,7 @@ Author: ClaimFlowEngine Team (2025)
 """
 
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union, cast
 
 import joblib
 import numpy as np
@@ -59,16 +59,16 @@ logger = get_logger("cluster")
 
 def embed_denial_reasons(
     texts: List[str], model_name: str = SENTENCE_TRANSFORMER_MODEL_NAME
-) -> np.ndarray:
+) -> np.ndarray[Any, Any]:
     logger.info(f"Loading SentenceTransformer model: {model_name}...")
     model = SentenceTransformer(model_name)
     logger.info("Encoding denial reasons into embeddings.")
-    return model.encode(texts, show_progress_bar=True)
+    return cast(np.ndarray[Any, Any], model.encode(texts, show_progress_bar=True))
 
 
 def reduce_dimensions(
-    data: np.ndarray, n_components: int = 5, random_state: int = 42
-) -> tuple[np.ndarray, Optional[UMAP]]:
+    data: np.ndarray[Any, Any], n_components: int = 5, random_state: int = 42
+) -> tuple[np.ndarray[Any, Any], Optional[UMAP]]:
     if data.shape[0] < 3:
         logger.warning("Too few rows to perform clustering. Returning input unchanged.")
         return data, None
@@ -86,8 +86,8 @@ def reduce_dimensions(
 
 
 def cluster_embeddings(
-    data: np.ndarray, min_cluster_size: int = 30
-) -> tuple[np.ndarray, HDBSCAN]:
+    data: np.ndarray[Any, Any], min_cluster_size: int = 30
+) -> tuple[np.ndarray[Any, Any], HDBSCAN]:
     logger.info("Clustering data with HDBSCAN")
     n_samples = data.shape[0]
     min_cluster_size = min(min_cluster_size, max(2, n_samples // 3))
@@ -99,7 +99,7 @@ def cluster_embeddings(
 
 def attach_clusters(
     df: pd.DataFrame,
-    labels: np.ndarray,
+    labels: np.ndarray[Any, Any],
     output_path: Union[str, Path] = CLUSTERING_OUTPUT_PATH,
 ) -> pd.DataFrame:
     df_with_clusters = df.copy()

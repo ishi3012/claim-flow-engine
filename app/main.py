@@ -1,22 +1,22 @@
 """
-    Module: app.main
+Module: app.main
 
-    Main FastAPI application module for ClaimFlowEngine.
+Main FastAPI application module for ClaimFlowEngine.
 
-    This module initializes the FastAPI app and provides a health check endpoint.
+This module initializes the FastAPI app and provides a health check endpoint.
 
-    Features:
-    - Initializes FastAPI app instance
-    - Defines a root /ping endpoint for health monitoring
+Features:
+- Initializes FastAPI app instance
+- Defines a root /ping endpoint for health monitoring
 
-    Intended Use:
-    - Importable by ASGI servers (e.g., Uvicorn)
-    - Used as the entrypoint for running the microservice
+Intended Use:
+- Importable by ASGI servers (e.g., Uvicorn)
+- Used as the entrypoint for running the microservice
 
-    Example:
-        uvicorn app.main:app --reload
+Example:
+    uvicorn app.main:app --reload
 
-    Author: ClaimFlowEngine Team
+Author: ClaimFlowEngine Team
 """
 
 import pandas as pd

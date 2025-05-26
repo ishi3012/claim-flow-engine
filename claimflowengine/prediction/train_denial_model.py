@@ -1,18 +1,3 @@
-"""
-Module: train_denial_model.py
-
-Description:
-This script trains and evaluates multiple machine learning models
-(Logistic Regression, XGBoost, LightGBM, CatBoost, EBM) on engineered healthcare
-claims data to predict claim denials.
-
-It performs cross-validation, logs evaluation metrics,
-selects the best-performing model based on a composite score,
-and serializes the trained model to disk.
-
-Author: ClaimFlowEngine Team
-"""
-
 import argparse
 from collections import Counter
 from pathlib import Path
@@ -41,7 +26,7 @@ from claimflowengine.utils.logger import get_logger
 logger = get_logger("training")
 
 
-def load_data(data_path: str) -> Tuple[pd.DataFrame, pd.Series]:
+def load_data(data_path: str) -> Tuple[pd.DataFrame, "pd.Series[Any]"]:
     logger.info(f"Loading transformed features from: {data_path}")
     df = pd.read_csv(data_path)
 
@@ -55,7 +40,7 @@ def load_data(data_path: str) -> Tuple[pd.DataFrame, pd.Series]:
 
 
 def evaluate_model(
-    model: Any, X: pd.DataFrame, y: pd.Series, n_splits: int = 5
+    model: Any, X: pd.DataFrame, y: "pd.Series[Any]", n_splits: int = 5
 ) -> Dict[str, float]:
     class_counts = Counter(y)
     n_splits = min(n_splits, min(class_counts.values()))

@@ -24,6 +24,7 @@ def test_claim_input_schema_instantiation() -> None:
         is_resubmission=0,
         contains_auth_term=True,
         note_length=120,
+        place_of_service="11",
     )
 
     assert sample.patient_age == 45
@@ -34,6 +35,8 @@ def test_claim_prediction_response_schema() -> None:
         denial_probability=0.85,
         top_denial_reasons=["coding error", "prior auth missing"],
         model_version="v1.0",
+        routing_cluster_id="auth_required",
+        explainability_scores={"feature1": 0.5},
     )
     assert response.denial_probability == 0.85
     assert len(response.top_denial_reasons) == 2
