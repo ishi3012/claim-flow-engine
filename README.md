@@ -5,37 +5,57 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Made with FastAPI](https://img.shields.io/badge/Made%20with-FastAPI-009688.svg)
 ![CI](https://github.com/ishi3012/claim-flow-engine/actions/workflows/ci.yml/badge.svg)
+![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)
+![Linted with Ruff](https://img.shields.io/badge/linting-ruff-yellow)
+![Docs](https://img.shields.io/badge/docs-available-blue)
+![Status](https://img.shields.io/badge/deploy-ready-green)
 
 
-> A modular microservice for healthcare claim denial prediction, root cause clustering, and intelligent claim routing.
+> **ClaimFlowEngine** is an ML-powered microservice for automating healthcare claim denial prediction, uncovering root causes through NLP-based clustering, and intelligently routing high-priority claims to resolution teams using reinforcement learning-inspired policies.
 
 ---
 
 ## Project Overview
 
-ClaimFlowEngine is a production-grade FastAPI microservice that predicts healthcare claim denials, clusters denied claims into root causes, and routes complex cases to the most appropriate resolution queues.
+**ClaimFlowEngine** simulates real-world **Revenue Cycle Management (RCM)** workflows and serves as a full-stack ML engineering showcase. It enables:
 
-This project is designed to simulate **real-world Revenue Cycle Management (RCM)** workflows and showcases end-to-end ML engineering, from data ingestion to smart routing logic.
+- Predicting whether a claim will be denied and why
+  - For model details and evaluation, see the 
+- Clustering denied claims into root causes using sentence embeddings
+  - For model details and evaluation, see the .
+- Routing high-complexity claims to the right team using contextual features
+  - For model details and evaluation, see the 
 
+The system demonstrates expertise in ML, RL-style logic, MLOps, and domain-driven healthcare automation.
 ---
 
+📄 Model Cards
+- [Denial Prediction Model Card](docs/model_card.md)
+  - Detailed breakdown of model inputs, outputs, metrics, and retraining strategy.
+
+- [Root Cause Clustering Model Card](docs/model_card_cluster.md)
+  - Explains the Sentence-BERT + UMAP + HDBSCAN clustering pipeline with real output structure.
+
+- [Routing Policy Engine Card](docs/model_card_policy.md)
+  - Describes the priority scoring logic and YAML-driven queue assignment engine.
+
+---
 ## Key Features
 
-- **Real-time Denial Prediction**
-  Uses XGBoost and LightGBM models trained on structured healthcare claims and EHR metadata.
+- **Real-time Denial Prediction**  
+  Uses XGBoost/LightGBM models trained on structured claim + EHR data.
 
-- **Root Cause Clustering**
-  Combines Sentence-BERT embeddings with UMAP + HDBSCAN to group denied claims by latent denial drivers.
+- **Root Cause Clustering**  
+  Embeds denial reasons with Sentence-BERT and applies UMAP + HDBSCAN to discover latent denial drivers.
 
-- **Routing Engine**
-  Applies a hybrid rule-based and ML-inspired logic to prioritize claims by complexity, denial type, and team expertise.
+- **Routing Engine**  
+  Applies an offline-RL-inspired policy to prioritize A/R workflows based on claim metadata, denial cluster, and team skills.
 
-- **FastAPI Inference API**
-  Provides REST endpoints for predictions, clustering, and routing in real-time workflows.
+- **FastAPI Inference API**  
+  Modular endpoints for predicting denial, clustering root causes, and suggesting routing actions.
 
-- **CI/CD Ready**
-  Integrated with GitHub Actions, pytest, mypy, ruff, black, and pre-commit from Day 1.
-
+- **CI/CD + MLOps Ready**  
+  Integrated testing, type checks, and style checks with `pytest`, `mypy`, `ruff`, `black`, and GitHub Actions from day one.
 ---
 
 ## System Flow
@@ -49,101 +69,123 @@ flowchart TD
     E --> F[FastAPI Endpoint]
 ```
 
----
+## Sample Inference (via FastAPI)
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "claim_id": "12345",
+    "cpt_code": "99213",
+    "diagnosis_code": "E11.9",
+    "payer_id": "AETNA",
+    "provider_type": "Cardiologist",
+    ...
+  }'
+```
 
-## 🛠 Tech Stack
-
-| Layer              | Tools & Frameworks                                                  |
-|-------------------|----------------------------------------------------------------------|
-| ML Models          | XGBoost, LightGBM, Scikit-learn                                      |
-| Clustering         | Sentence-BERT, UMAP, HDBSCAN                                         |
-| API & Infra        | FastAPI, Uvicorn, Docker, GitHub Actions                                |
-| Testing & CI       | Pytest, Mypy, Ruff, Black, Pre-commit, Codecov (TBD)                       |
-| Data               | Simulated claims and EHR metadata
-
-
----
-
-## 📁 Directory Structure
+## Response:
+```json
+{
+  "denial_probability": 0.82,
+  "likely_denial_reasons": ["Medical Necessity", "Prior Auth Missing"],
+  "denial_cluster": "auth-required",
+  "routing_team": "High Complexity A/R Team"
+}
 
 ```
+## Tech Stack
+| Layer                  | Tools & Frameworks                                          |
+|------------------------|-------------------------------------------------------------|
+| ML Models              | XGBoost, LightGBM, Scikit-learn                             |
+| Clustering             | Sentence-BERT, UMAP, HDBSCAN                                |
+| API & Infra            | FastAPI, Uvicorn, Docker, GitHub Actions                    |
+| Testing & CI           | Pytest, Mypy, Ruff, Black, Pre-commit                       |
+| MLOps & Orchestration  | Vertex AI Pipelines, Airflow (optional), Streamlit          |
+| Data                   | Simulated healthcare claims + EHR metadata                  |
+
+## Project Structure
+
+```bash
 ClaimFlowEngine/
-├── claimflowengine/ # Core logic: agents, pipelines, preprocessing, utils, workflows
-│ ├── agents/ # Agent logic for decision routing and appeals
-│ ├── pipelines/ # Model training, evaluation, and composite scoring logic
-│ ├── preprocessing/ # Feature engineering, imputers, encoders, datetime transforms
-│ ├── skills/ # Legacy logic (can migrate to pipelines or agents)
-│ ├── utils/ # Shared utilities like config loading and path management
-│ └── workflows/ # Agent task chains or pipeline orchestrations
-├── data/ # Raw and processed claims dataset
-├── models/ # Trained model binaries and benchmark results
+├── claimflowengine/
+│   ├── agents/             # Claim routing + appeal agents
+│   ├── pipelines/          # Model training & scoring
+│   ├── preprocessing/      # Feature engineering modules
+│   ├── skills/             # Legacy routing logic
+│   ├── utils/              # Config loaders, path helpers
+│   └── workflows/          # Orchestrated pipelines
+├── data/                   # Raw + processed datasets
+├── models/                 # Trained models & metrics
 ├── deployment/
-│ ├── pipelines/ # Vertex AI pipeline components & orchestrators
-│ ├── serving/ # FastAPI app or custom prediction containers
-│ ├── docker/ # Dockerfiles and startup configs
-│ ├── config/ # Pipeline & model YAML configs
-│ └── gcloud_scripts/ # CLI scripts for pipeline submission, deploy, etc.
-├── notebooks/ # EDA, experiments, embedding analysis
-├── tests/ # Unit & integration tests
+│   ├── pipelines/          # Kubeflow/Vertex pipeline components
+│   ├── serving/            # FastAPI app
+│   ├── docker/             # Dockerfiles
+│   ├── config/             # YAML configs
+│   └── gcloud_scripts/     # Vertex CLI automation
+├── notebooks/              # EDA + clustering analysis
+├── tests/                  # Unit + integration tests
 ├── requirements.txt
 ├── setup.py
 ├── README.md
 └── LICENSE
 ```
 
-
-## 🚀 Getting Started
-
-1. **Clone the repo**
-
+## Getting Started
+### 1. Clone the repo
 ```bash
-git clone https://github.com/<your-username>/ClaimFlowEngine.git
+git clone https://github.com/ishi3012/ClaimFlowEngine.git
 cd ClaimFlowEngine
-
 ```
 
-2. **Install dependencies**
-
+### 2. Install dependencies
 ```bash
 pip install -r requirements.txt
-
 ```
-3. **Run the API**
 
+### 3. Run FastAPI server
 ```bash
 uvicorn app.main:app --reload
-
 ```
-4. **Input dataset** :
 
+### 4. Prepare input data
 ```bash
-# Place your raw claims data in:
+# Place your raw claim dataset in:
 data/raw_claims.csv
 ```
+## Sample Results
 
+| Metric                | Score  |
+|------------------------|--------|
+| AUC (Binary Denial)    | 0.540  |
+| F1-Score               | 0.567  |
+| Recall                 | 0.593  |
+| Accuracy               | 0.537  |
+| Composite Score        | 0.553  |
 
----
+> Trained using 5-fold cross-validation on simulated EHR + claims data (CatBoost model).
 
-## 🔬 Future Directions
+⚠️ Results based on simulated EHR + claims dataset.
 
-### Domain features:
-- Live data integration with EHR APIs for real-time claim processing.
-- Human-in-the-loop (HITL) feedback mechanism for continuous policy tuning and improvement.
-- Interactive dashboard for enhanced explainability of predictions, cluster insights, and audit trails of routing decisions.
-- Agentic AI logic for denial appeals and policy optimization.
+## Roadmap
+### Domain Additions
+- HITL feedback loop for routing policy refinement
 
-### Tech Enhancements:
+- Real-time EHR integration
 
-- LangChain/CrewAI orchestration for multi-agent workflows
-- Vertex AI Workbench for low-code experimentation
----
+- Interactive audit dashboards for claim lifecycle
 
-## 👩‍💻 Author
+### Technical Extensions
+- LangChain/CrewAI for multi-agent routing
 
-**Shilpa Musale** – [LinkedIn](https://www.linkedin.com/in/shilpamusale) • [GitHub](https://github.com/ishi3012) • [Portfolio](https://ishi3012.github.io/ishi-ai/)
+- Vertex AI Workbench migration
 
----
+- CI-integrated model retraining pipeline
 
-## 📄 License
+## Author
 
+**Shilpa Musale**  
+[LinkedIn](https://www.linkedin.com/in/shilpamusale) • [GitHub](https://github.com/ishi3012) 
+<!-- • [Portfolio](https://ishi3012.github.io/ishi-ai/) -->
+
+## License
 This project is licensed under the [MIT License](LICENSE).
