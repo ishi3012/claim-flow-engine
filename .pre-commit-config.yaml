@@ -19,4 +19,5 @@ repos:
           - pydantic
           - pydantic-settings
           - types-PyYAML
+          - pytest-cov
 

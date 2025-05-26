@@ -9,6 +9,7 @@ types-PyYAML==6.0.12.20250516
 
 # Unit Testing
 pytest==7.4.3
+pytest-cov==4.1.0
 
 # Shared dependencies (to prevent resolver conflicts)
 numpy==1.26.4
