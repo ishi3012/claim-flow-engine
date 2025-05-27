@@ -47,7 +47,7 @@ pandas-stubs==2.2.1.240316
 types-PyYAML==6.0.12.20250516
 tomli==2.2.1
 iniconfig==2.1.0
-packaging==25.0
+packaging==24.0
 
 # CLI & Console
 click==8.1.8

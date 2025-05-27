@@ -9,6 +9,8 @@
 ![Linted with Ruff](https://img.shields.io/badge/linting-ruff-yellow)
 ![Docs](https://img.shields.io/badge/docs-available-blue)
 ![Status](https://img.shields.io/badge/deploy-ready-green)
+![Streamlit UI](https://img.shields.io/badge/streamlit-dashboard-red?logo=streamlit)
+
 
 
 > **ClaimFlowEngine** is an ML-powered microservice for automating healthcare claim denial prediction, uncovering root causes through NLP-based clustering, and intelligently routing high-priority claims to resolution teams using reinforcement learning-inspired policies.
@@ -69,6 +71,45 @@ flowchart TD
     E --> F[FastAPI Endpoint]
 ```
 
+## API Usage (FastAPI)
+
+### 🔹 POST /api/fullroute
+Submit a CSV file of claims to trigger the full triage pipeline:
+```bash
+curl -X POST http://localhost:8000/api/fullroute \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@your_claims.csv"
+```
+- Input: CSV with claims (columns: claim_id, cpt_code, diagnosis_code, payer_id, etc.)
+- Output: JSON list with denial probability, top denial reasons, cluster ID, priority score, and recommended queue.
+
+## Sample Inference (via JSON)
+
+```json
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "claim_id": "12345",
+    "cpt_code": "99213",
+    "diagnosis_code": "E11.9",
+    "payer_id": "AETNA",
+    "provider_type": "Cardiologist"
+  }'
+
+```
+  - ### Response
+            ```json
+            {
+              "denial_probability": 0.82,
+              "top_denial_reasons": ["Medical Necessity", "Prior Auth Missing"],
+              "model_version": "v1.0.0",
+              "routing_cluster_id": "auth_required",
+              "explainability_scores": null
+            }
+
+            ```
+
 ## Sample Inference (via FastAPI)
 ```bash
 curl -X POST http://localhost:8000/predict \
@@ -83,16 +124,32 @@ curl -X POST http://localhost:8000/predict \
   }'
 ```
 
-## Response:
-```json
-{
-  "denial_probability": 0.82,
-  "likely_denial_reasons": ["Medical Necessity", "Prior Auth Missing"],
-  "denial_cluster": "auth-required",
-  "routing_team": "High Complexity A/R Team"
-}
+  - ### Response:
+            ```json
+            {
+              "denial_probability": 0.82,
+              "likely_denial_reasons": ["Medical Necessity", "Prior Auth Missing"],
+              "denial_cluster": "auth-required",
+              "routing_team": "High Complexity A/R Team"
+            }
+            ```
+## Streamlit UI
 
+You can launch a local dashboard to triage claims:
+
+```bash
+streamlit run streamlit_app.py
 ```
+
+### Features
+- Upload claims and run full prediction → cluster → route pipeline
+- Visualize routed claim volume by team (bar chart)
+- Explore denial clusters in UMAP 2D space
+- Download results as triaged CSV
+
+  - Runs at: `http://localhost:8501`
+
+
 ## Tech Stack
 | Layer                  | Tools & Frameworks                                          |
 |------------------------|-------------------------------------------------------------|
