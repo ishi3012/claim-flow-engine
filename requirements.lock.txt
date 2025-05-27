@@ -178,3 +178,5 @@ xgboost==1.7.6
 zipp==3.21.0
 zope.event==5.0
 zope.interface==7.2
+streamlit>=1.30.0
+types-requests>=2.31.0.10
