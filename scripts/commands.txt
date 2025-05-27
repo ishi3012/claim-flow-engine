@@ -23,3 +23,6 @@ uvicorn app.main:app --reload
 curl -X POST http://localhost:8000/api/fullroute -H "accept: application/json" -F "file=@data/raw_claims.csv"
 
 streamlit run streamlit_app.py
+
+lsof -i :8000
+kill -9 <PID>

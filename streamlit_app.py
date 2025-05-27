@@ -64,29 +64,26 @@ with tabs[0]:
                 try:
                     response = requests.post(API_URL, files=files)
                     if response.status_code == 200:
-                        results_df: Optional[pd.DataFrame] = pd.DataFrame(
-                            response.json()
-                        )
-                        if (
-                            results_df is not None
-                            and not results_df.empty
-                            and "recommended_queue" in results_df.columns
-                        ):
-                            st.session_state["results_df"] = results_df
-                            st.success("Triage Complete!")
-                            st.dataframe(results_df.head())
+                        results = response.json()
+                        results_df: Optional[pd.DataFrame] = pd.DataFrame(results)
 
-                            csv = results_df.to_csv(index=False).encode("utf-8")
-                            st.download_button(
-                                label="⬇Download Triaged Results",
-                                data=csv,
-                                file_name="triaged_claims.csv",
-                                mime="text/csv",
-                            )
+                        if results_df is not None and not results_df.empty:
+                            if "recommended_queue" in results_df.columns:
+                                st.session_state["results_df"] = results_df
+                                st.success("Triage Complete!")
+                                st.dataframe(results_df.head())
+
+                                csv = results_df.to_csv(index=False).encode("utf-8")
+                                st.download_button(
+                                    label="⬇ Download Triaged Results",
+                                    data=csv,
+                                    file_name="triaged_claims.csv",
+                                    mime="text/csv",
+                                )
+                            else:
+                                st.error("Missing expected column: 'recommended_queue'")
                         else:
-                            st.error(
-                                f"API Error {response.status_code}: {response.text}"
-                            )
+                            st.warning("Received empty result from API.")
                     else:
                         st.error(f"API Error {response.status_code}: {response.text}")
                 except Exception as e:
@@ -95,6 +92,10 @@ with tabs[0]:
 # --- Tab 2: Routing Breakdown ---
 with tabs[1]:
     results_df = cast(Optional[pd.DataFrame], st.session_state.get("results_df"))
+    if results_df is not None:
+        st.write("🔍 Available columns:", results_df.columns.tolist())
+        st.dataframe(results_df.head())
+
     if results_df is not None and "recommended_queue" in results_df.columns:
         st.subheader("Routed Claim Volume by Queue")
         queue_counts = results_df["recommended_queue"].value_counts().reset_index()
@@ -112,9 +113,13 @@ with tabs[1]:
 
 # --- Tab 3: UMAP Cluster Plot ---
 with tabs[2]:
+    if results_df is not None:
+        st.write("🔍 Available columns:", results_df.columns.tolist())
+        st.dataframe(results_df.head())
     if results_df is not None and {"umap_x", "umap_y", "denial_cluster_id"}.issubset(
         results_df.columns
     ):
+
         st.subheader("UMAP Projection of Denial Clusters")
         fig_umap = px.scatter(
             results_df,
@@ -131,8 +136,4 @@ with tabs[2]:
         )
         st.plotly_chart(fig_umap, use_container_width=True)
     else:
-        st.info(
-            "Cluster UMAP not available. "
-            + "Ensure clustering step added "
-            + "coordinates to result."
-        )
+        st.info("UMAP plot unavailable. Run prediction to generate cluster embeddings.")

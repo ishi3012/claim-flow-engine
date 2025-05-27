@@ -14,6 +14,5 @@ pytest-cov==4.1.0
 # Shared dependencies (to prevent resolver conflicts)
 numpy==1.26.4
 click==8.1.8
-streamlit>=1.30.0
-
-
+streamlit==1.30.0
+types-requests==2.31.0.10
